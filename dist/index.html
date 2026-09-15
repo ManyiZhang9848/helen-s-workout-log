@@ -7,6 +7,11 @@
     <meta name="description" content="记录真实完成的力量训练动作、组数、重量与次数。" />
     <title>训练日志 · 20 次打卡</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2358bd70'/%3E%3Cpath d='M9 12h4v8H9zm10 0h4v8h-4zM13 14h6v4h-6z' fill='%23121414'/%3E%3C/svg%3E" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="健身打卡" />
     <style>
       :root { --bg:#121214; --panel:#242427; --panel-2:#303034; --line:#3b3b40; --text:#f5f5f2; --muted:#a9a9ad; --green:#58bd70; --green-dark:#1d4f2b; --radius:22px; color-scheme:dark; font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
       * { box-sizing:border-box; }
@@ -69,7 +74,8 @@
       .section-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:0 0 14px; }
       .section-head h2 { margin:0; font-size:19px; letter-spacing:-.035em; }
       .section-head span { color:var(--muted); font-size:13px; }
-      .meta-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:30px; }
+      .meta-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:10px; }
+      .meta-note { margin:0 0 30px; color:var(--muted); font-size:12px; line-height:1.5; }
       .meta-field { min-width:0; padding:13px 12px; border:1px solid var(--line); border-radius:16px; background:var(--panel); }
       .meta-field label { display:block; margin-bottom:7px; color:var(--muted); font-size:12px; }
       .meta-field input { width:100%; min-width:0; font-size:16px; font-weight:750; }
@@ -222,7 +228,7 @@
       .viewer-btn-primary { background:var(--green); color:#102015; border:1px solid var(--green); }
       .viewer-btn-secondary { background:var(--panel-2); color:var(--text); border:1px solid var(--line); }
 
-      @media (max-width:560px) { .app { padding:22px 14px 34px; } .topbar { margin-bottom:28px; } .topbar-actions { gap:8px; } .share-trigger-btn { padding:6px 10px; font-size:12px; } .intro { display:block; } h1 { margin-bottom:12px; } .intro p { max-width:none; text-align:left; } .goal-card { align-items:flex-start; flex-direction:column; gap:12px; } .goal-meter { width:100%; } .report-card { padding:15px 12px; } .report-head { align-items:flex-start; flex-direction:column; gap:10px; } .report-switch { width:100%; } .report-switch button { flex:1; } .report-day { min-height:54px; } .report-day-volume { font-size:9px; } .meta-grid { grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:28px; } .meta-field { padding:12px 11px; } .exercise { padding:16px 10px 13px; } .exercise-head { grid-template-columns:39px 1fr auto; gap:9px; } .exercise-index { width:39px; height:39px; border-radius:12px; } .exercise-name { font-size:18px; } .set-header,.set-row { grid-template-columns:25px 1fr 12px 1fr 30px; gap:6px; padding-left:4px; padding-right:4px; } .set-input { padding:8px 8px; } .set-header { font-size:11px; } .viewer-meta-grid { grid-template-columns:repeat(2,1fr); } .viewer-kpi-grid { grid-template-columns:repeat(2,1fr); } .viewer-pr-grid { grid-template-columns:1fr; } .share-actions { grid-template-columns:1fr; } .viewer-actions { flex-direction:column; } }
+      @media (max-width:560px) { .app { padding:22px 14px 34px; } .topbar { margin-bottom:28px; } .topbar-actions { gap:8px; } .share-trigger-btn { padding:6px 10px; font-size:12px; } .intro { display:block; } h1 { margin-bottom:12px; } .intro p { max-width:none; text-align:left; } .goal-card { align-items:flex-start; flex-direction:column; gap:12px; } .goal-meter { width:100%; } .report-card { padding:15px 12px; } .report-head { align-items:flex-start; flex-direction:column; gap:10px; } .report-switch { width:100%; } .report-switch button { flex:1; } .report-day { min-height:54px; } .report-day-volume { font-size:9px; } .meta-grid { grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:10px; } .meta-note { margin-bottom:28px; } .meta-field { padding:12px 11px; } .exercise { padding:16px 10px 13px; } .exercise-head { grid-template-columns:39px 1fr auto; gap:9px; } .exercise-index { width:39px; height:39px; border-radius:12px; } .exercise-name { font-size:18px; } .set-header,.set-row { grid-template-columns:25px 1fr 12px 1fr 30px; gap:6px; padding-left:4px; padding-right:4px; } .set-input { padding:8px 8px; } .set-header { font-size:11px; } .viewer-meta-grid { grid-template-columns:repeat(2,1fr); } .viewer-kpi-grid { grid-template-columns:repeat(2,1fr); } .viewer-pr-grid { grid-template-columns:1fr; } .share-actions { grid-template-columns:1fr; } .viewer-actions { flex-direction:column; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
     </style>
   </head>
@@ -259,9 +265,11 @@
         <div class="meta-grid">
           <div class="meta-field"><label for="dateInput">训练日期</label><input id="dateInput" type="date" /></div>
           <div class="meta-field"><label for="durationInput">训练时长</label><input id="durationInput" inputmode="numeric" placeholder="分钟" /></div>
-          <div class="meta-field"><label for="caloriesInput">热量（估算）</label><input id="caloriesInput" inputmode="numeric" placeholder="完成后自动算" readonly aria-label="热量消耗（按总容量估算）" /></div>
+          <div class="meta-field"><label for="weightInput">体重（kg）</label><input id="weightInput" inputmode="decimal" placeholder="如 65" aria-label="体重，用于估算热量，会一直记住" /></div>
+          <div class="meta-field"><label for="caloriesInput">热量（估算）</label><input id="caloriesInput" inputmode="numeric" placeholder="填时长后自动算" readonly aria-label="热量消耗（按体重与时长估算）" /></div>
           <div class="meta-field"><label>总容量</label><input id="volumeDisplay" value="—" readonly aria-label="总容量" /></div>
         </div>
+        <p class="meta-note">热量按「体重 × 时长 × 5.0 MET」估算，力量训练强度系数，仅供粗略参考；填了体重和时长才会算。</p>
       </section>
 
       <section aria-labelledby="exercise-heading">
@@ -329,7 +337,7 @@
       const AI_CONFIG_KEY = 'strength-ai-config-v1';
       const DEFAULT_AI_CONFIG = { mode:'remote', remote:{ endpoint:'https://api.deepseek.com/chat/completions', model:'deepseek-v4-flash' }, local:{ endpoint:'http://localhost:11434/v1/chat/completions', model:'deepseek-r1:7b' } };
       const blankExercise = () => ({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()), name: '', sets: [{ weight: '', reps: '', done: false }] });
-      const blankState = () => ({ current: { date: new Date().toISOString().slice(0,10), duration: '', calories: '', notes: '', exercises: [] }, sessions: [], aiSummary: '' });
+      const blankState = () => ({ profile: { weight: '' }, current: { date: new Date().toISOString().slice(0,10), duration: '', calories: '', notes: '', exercises: [] }, sessions: [], aiSummary: '' });
       let state = loadState();
       let aiConfig = loadAiConfig();
       let reportView = 'history';
@@ -337,7 +345,7 @@
       const $ = id => document.getElementById(id);
       window.$ = $;
       window.workoutApp = { getState: () => state, blankExercise };
-      function loadState() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (!saved || !saved.current || !Array.isArray(saved.sessions)) return blankState(); saved.aiSummary = saved.aiSummary || ''; return saved; } catch { return blankState(); } }
+      function loadState() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (!saved || !saved.current || !Array.isArray(saved.sessions)) return blankState(); saved.aiSummary = saved.aiSummary || ''; saved.profile = saved.profile || { weight: '' }; return saved; } catch { return blankState(); } }
       function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
       function loadAiConfig() { try { const saved = JSON.parse(localStorage.getItem(AI_CONFIG_KEY)); return { ...DEFAULT_AI_CONFIG, ...saved, remote:{ ...DEFAULT_AI_CONFIG.remote, ...(saved?.remote || {}) }, local:{ ...DEFAULT_AI_CONFIG.local, ...(saved?.local || {}) } }; } catch { return JSON.parse(JSON.stringify(DEFAULT_AI_CONFIG)); } }
       function saveAiConfig() { localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(aiConfig)); }
@@ -348,12 +356,13 @@
       function escapeHtml(text) { return String(text || '').replace(/[&<>\"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[char])); }
       function formatDate(value) { if (!value) return '未填写日期'; return new Intl.DateTimeFormat('zh-CN', { month:'numeric', day:'numeric', weekday:'short' }).format(new Date(value + 'T12:00:00')); }
       function totalVolume() { return state.current.exercises.reduce((sum, exercise) => sum + exercise.sets.reduce((setSum, set) => setSum + ((Number(set.weight) || 0) * (Number(set.reps) || 0)), 0), 0); }
-      function estimatedCalories(volume) { return volume ? Math.max(1, Math.round(volume * 0.015)) : ''; }
+      const STRENGTH_MET = 5.0;
+      function estimatedCalories() { const minutes = Number(state.current.duration) || 0; const weight = Number(state.profile && state.profile.weight) || 0; if (!minutes || !weight) return ''; return Math.max(1, Math.round(STRENGTH_MET * weight * (minutes / 60))); }
       function completedSets() { return state.current.exercises.reduce((sum, exercise) => sum + exercise.sets.filter(set => set.done).length, 0); }
       function render() {
         const count = state.sessions.length;
         $('goalNumber').textContent = count + ' / 20'; $('goalMeter').style.width = Math.min(count / 20 * 100, 100) + '%'; $('goalCaption').textContent = count ? '还差 ' + Math.max(20 - count, 0) + ' 次真实训练' : '完成一次真实训练后，再记为 1 次';
-        $('dateInput').value = state.current.date || ''; $('durationInput').value = state.current.duration || ''; $('caloriesInput').value = estimatedCalories(totalVolume()); $('notesInput').value = state.current.notes || ''; $('volumeDisplay').value = totalVolume() ? totalVolume().toLocaleString() + ' kg' : '—';
+        $('dateInput').value = state.current.date || ''; $('durationInput').value = state.current.duration || ''; $('weightInput').value = state.profile.weight || ''; $('caloriesInput').value = estimatedCalories(); $('notesInput').value = state.current.notes || ''; $('volumeDisplay').value = totalVolume() ? totalVolume().toLocaleString() + ' kg' : '—';
         renderExercises(); renderHistory(); renderAi(); renderReport();
       }
       function reportMonthLabel(date) { return date.getFullYear() + '年' + (date.getMonth() + 1) + '月'; }
@@ -400,7 +409,8 @@
         $('exerciseList').querySelectorAll('[data-exercise]').forEach(card => { const exercise = state.current.exercises.find(item => item.id === card.dataset.exercise); card.querySelector('[data-field="name"]').addEventListener('input', event => { exercise.name = event.target.value; saveState(); }); card.querySelector('[data-action="remove-exercise"]').addEventListener('click', () => { state.current.exercises = state.current.exercises.filter(item => item.id !== exercise.id); saveState(); render(); }); card.querySelector('[data-action="add-set"]').addEventListener('click', () => { exercise.sets.push({ weight:'', reps:'', done:false }); saveState(); render(); }); card.querySelectorAll('.set-row').forEach(row => { const set = exercise.sets[Number(row.dataset.set)]; row.querySelector('[data-field="weight"]').addEventListener('input', event => { set.weight = event.target.value; saveState(); updateVolumeOnly(); }); row.querySelector('[data-field="reps"]').addEventListener('input', event => { set.reps = event.target.value; saveState(); updateVolumeOnly(); }); row.querySelector('[data-action="toggle-set"]').addEventListener('click', () => { set.done = !set.done; saveState(); render(); }); }); });
       }
       function exerciseVolume(exercise) { return exercise.sets.reduce((sum, set) => sum + ((Number(set.weight) || 0) * (Number(set.reps) || 0)), 0); }
-      function updateVolumeOnly() { const volume = totalVolume(); state.current.calories = String(estimatedCalories(volume)); $('volumeDisplay').value = volume ? volume.toLocaleString() + ' kg' : '—'; $('caloriesInput').value = estimatedCalories(volume); document.querySelectorAll('.volume').forEach((node, index) => { node.textContent = '容量 ' + exerciseVolume(state.current.exercises[index]).toLocaleString() + ' kg'; }); saveState(); }
+      function updateVolumeOnly() { const volume = totalVolume(); $('volumeDisplay').value = volume ? volume.toLocaleString() + ' kg' : '—'; document.querySelectorAll('.volume').forEach((node, index) => { node.textContent = '容量 ' + exerciseVolume(state.current.exercises[index]).toLocaleString() + ' kg'; }); saveState(); }
+      function updateCaloriesOnly() { const value = estimatedCalories(); state.current.calories = String(value); $('caloriesInput').value = value; saveState(); }
       function renderHistory() {
         $('historyCaption').textContent = state.sessions.length ? '最近 ' + Math.min(state.sessions.length, 10) + ' 次' : '还没有记录';
         $('historyList').innerHTML = state.sessions.length ? state.sessions.slice(0,10).map((session, index) => '<article class="history-card"><strong>' + formatDate(session.date) + '</strong><time>' + (session.duration ? escapeHtml(session.duration) + ' 分钟' : '时长未填') + '</time><div class="history-stats">' + session.exercises.length + ' 个动作 · ' + (session.volume ? session.volume.toLocaleString() + ' kg' : '容量未填') + '</div><p>' + (session.notes ? escapeHtml(session.notes) : '已完成训练记录') + '</p><div class="history-card-actions"><button type="button" class="history-share-btn" data-share-index="' + index + '">📤 分享此条给教练</button></div></article>').join('') : '<div class="history-empty">完成并保存一次训练后，真实记录会显示在这里。</div>';
@@ -415,7 +425,7 @@
       function renderAi() { $('aiOutput').hidden = !state.aiSummary; $('aiContent').textContent = state.aiSummary || ''; }
       function addExercise() { if (window.openExerciseLibrary) { window.openExerciseLibrary(); return; } addCustomExercise(); }
       function addCustomExercise() { state.current.exercises.push(blankExercise()); saveState(); render(); setTimeout(() => { const names = document.querySelectorAll('.exercise-name'); names[names.length - 1]?.focus(); }, 0); }
-      function syncMeta() { state.current.date = $('dateInput').value; state.current.duration = $('durationInput').value; state.current.calories = String(estimatedCalories(totalVolume())); state.current.notes = $('notesInput').value; saveState(); }
+      function syncMeta() { state.current.date = $('dateInput').value; state.current.duration = $('durationInput').value; state.current.calories = String(estimatedCalories()); state.current.notes = $('notesInput').value; saveState(); }
       function showToast(message) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2600); }
       function finishWorkout() { syncMeta(); const validExercises = state.current.exercises.filter(exercise => exercise.name.trim() || exercise.sets.some(set => set.weight || set.reps)); if (!validExercises.length) { showToast('先添加至少一个真实动作'); return; } if (validExercises.some(exercise => !exercise.name.trim())) { showToast('请给每个动作填写名称'); return; } const savedSession = { date:state.current.date, duration:state.current.duration, calories:state.current.calories, notes:state.current.notes, volume:totalVolume(), completedSets:completedSets(), exercises:validExercises.map(exercise => ({ ...exercise, name:exercise.name, sets:exercise.sets.map(set => ({...set})) })), aiSummary:state.aiSummary }; state.sessions.unshift(savedSession); state.current = blankState().current; state.aiSummary = ''; saveState(); render(); showToast('本次训练已保存！点击顶部【分享给教练】'); }
       function summarySource() { if (state.current.exercises.length) return { ...state.current, volume:totalVolume(), completedSets:completedSets() }; return state.sessions[0] || null; }
@@ -819,8 +829,8 @@
           html += '    </div>';
           html += '    <div class="viewer-kpi-card">';
           html += '      <div class="viewer-kpi-label">🔥 累计消耗</div>';
-          html += '      <div class="viewer-kpi-val">' + (stats.totCal ? stats.totCal.toLocaleString() + ' kcal' : (totVol ? Math.round(totVol * 0.015).toLocaleString() + ' kcal' : '—')) + '</div>';
-          html += '      <div class="viewer-kpi-sub">' + (stats.sets ? '完成 ' + stats.sets + ' 组动作' : '按容量估算') + '</div>';
+          html += '      <div class="viewer-kpi-val">' + (stats.totCal ? stats.totCal.toLocaleString() + ' kcal' : '—') + '</div>';
+          html += '      <div class="viewer-kpi-sub">' + (stats.sets ? '完成 ' + stats.sets + ' 组动作' : '未记录时长/体重') + '</div>';
           html += '    </div>';
           html += '  </div>';
           html += '</section>';
@@ -1056,10 +1066,28 @@
       });
       window.addEventListener('hashchange', checkAndRenderViewer);
 
-      $('addExercise').addEventListener('click', addExercise); $('saveDraft').addEventListener('click', () => { syncMeta(); showToast('草稿已保存'); }); $('finishWorkout').addEventListener('click', finishWorkout); $('generateSummary').addEventListener('click', generateSummary); $('testLocal').addEventListener('click', testLocal); document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setAiMode(button.dataset.mode))); document.querySelectorAll('[data-report-view]').forEach(button => button.addEventListener('click', () => { reportView = button.dataset.reportView; renderReport(); })); $('reportPrevMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() - 1, 1); renderReportHistory(); }); $('reportNextMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() + 1, 1); renderReportHistory(); }); $('reportTodayMonth').addEventListener('click', () => { reportMonth = new Date(); renderReportHistory(); }); $('aiEndpoint').addEventListener('input', syncAiConfig); $('aiModel').addEventListener('input', syncAiConfig); ['dateInput','durationInput','caloriesInput','notesInput'].forEach(id => $(id).addEventListener('input', syncMeta));
+      $('addExercise').addEventListener('click', addExercise); $('saveDraft').addEventListener('click', () => { syncMeta(); showToast('草稿已保存'); }); $('finishWorkout').addEventListener('click', finishWorkout); $('generateSummary').addEventListener('click', generateSummary); $('testLocal').addEventListener('click', testLocal); document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setAiMode(button.dataset.mode))); document.querySelectorAll('[data-report-view]').forEach(button => button.addEventListener('click', () => { reportView = button.dataset.reportView; renderReport(); })); $('reportPrevMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() - 1, 1); renderReportHistory(); }); $('reportNextMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() + 1, 1); renderReportHistory(); }); $('reportTodayMonth').addEventListener('click', () => { reportMonth = new Date(); renderReportHistory(); }); $('aiEndpoint').addEventListener('input', syncAiConfig); $('aiModel').addEventListener('input', syncAiConfig); ['dateInput','durationInput','caloriesInput','notesInput'].forEach(id => $(id).addEventListener('input', syncMeta)); $('durationInput').addEventListener('input', updateCaloriesOnly); $('weightInput').addEventListener('input', () => { state.profile.weight = $('weightInput').value; updateCaloriesOnly(); });
       if (typeof document.modelContext?.registerTool === 'function') { document.modelContext.registerTool({ name:'read_workout_log', title:'读取训练日志', description:'读取当前训练草稿和已保存的真实训练记录。', inputSchema:{type:'object',properties:{},additionalProperties:false}, annotations:{readOnlyHint:true,untrustedContentHint:true}, execute(){ return { completedCount:state.sessions.length, current:state.current, sessions:state.sessions.slice(0,10) }; } }); document.modelContext.registerTool({ name:'save_workout_session', title:'保存训练记录', description:'保存一条由用户提供的真实训练记录。不会创建预设动作或虚构数据。', inputSchema:{type:'object',properties:{date:{type:'string'},duration:{type:'string'},calories:{type:'string'},notes:{type:'string'},exercises:{type:'array'}},required:['exercises'],additionalProperties:false}, annotations:{readOnlyHint:false,untrustedContentHint:false}, execute(input){ if(!Array.isArray(input.exercises)||!input.exercises.length) throw new Error('至少需要一个真实动作'); const session={date:String(input.date||''),duration:String(input.duration||''),calories:String(input.calories||''),notes:String(input.notes||''),volume:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).reduce((a,set)=>a+(Number(set.weight)||0)*(Number(set.reps)||0),0),0),completedSets:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).filter(set=>set.done).length,0),exercises:input.exercises}; state.sessions.unshift(session); saveState(); render(); return {status:'saved',completedCount:state.sessions.length}; } }); }
       renderAiConfig(); render(); checkAndRenderViewer();
     </script>
     <script src="workout-extras.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').then(reg => {
+            reg.onupdatefound = () => {
+              const installing = reg.installing;
+              if (installing) {
+                installing.onstatechange = () => {
+                  if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('健身打卡已更新至最新版本');
+                  }
+                };
+              }
+            };
+          }).catch(err => console.log('SW register error:', err));
+        });
+      }
+    </script>
   </body>
 </html>

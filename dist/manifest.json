@@ -1,0 +1,18 @@
+{
+  "name": "训练日志 · 健身打卡",
+  "short_name": "健身打卡",
+  "description": "记录真实完成的力量训练动作、组数、重量与次数",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#121214",
+  "theme_color": "#121214",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

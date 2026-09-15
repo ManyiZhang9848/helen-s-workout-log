@@ -29,7 +29,7 @@
   const equipment = {'barbell':'杠铃','dumbbell':'哑铃','cable':'绳索','leverage machine':'器械','smith machine':'史密斯机','body weight':'自重','kettlebell':'壶铃','band':'弹力带','ez barbell':'曲杆','wheel roller':'健腹轮','trap bar':'六角杠铃','rope':'战绳/绳索','assisted':'辅助器械','medicine ball':'药球/健身球'};
   const aliases = {'高位下拉':'0150','宽握高位下拉':'0200','坐姿划船':'0198','坐姿绳索划船':'0198','杠铃卧推':'0025','杠铃深蹲':'0043','杠铃硬拉':'0032','引体向上':'0652','俯卧撑':'0651','罗马尼亚硬拉':'0085'};
   const clean = text => String(text || '').trim().toLowerCase().replace(/\s+/g,'');
-  const CDN_BASE = 'https://cdn.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@main/';
+  const CDN_BASE = 'https://testingcf.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@main/';
   function matchExercise(ex) {
     return catalog.find(item => item.id === ex.catalogId) || catalog.find(item => clean(item.zh) === clean(ex.name) || clean(item.name) === clean(ex.name) || item.id === aliases[ex.name]);
   }
