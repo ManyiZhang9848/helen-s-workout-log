@@ -1,8 +1,9 @@
-const CACHE_NAME = 'workout-cache-v2';
+const CACHE_NAME = 'workout-cache-v6-top-bun';
 const STATIC_ASSETS = [
   './',
   'index.html',
   'catalog-data.js',
+  'female-body-data.js',
   'workout-extras.css',
   'workout-extras.js',
   'manifest.json',
@@ -36,6 +37,20 @@ self.addEventListener('fetch', event => {
 
   // 外部 AI 接口（如 DeepSeek、Ollama）不走缓存
   if (url.pathname.includes('/chat/completions') || url.pathname.includes('/models') || event.request.method !== 'GET') {
+    return;
+  }
+
+  // HTML 页面请求：网络优先，保证每次上线后用户立刻拿到最新版本；断网时回退到缓存
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const copy = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        }
+        return networkResponse;
+      }).catch(() => caches.match(event.request).then(cached => cached || caches.match('index.html')))
+    );
     return;
   }
 

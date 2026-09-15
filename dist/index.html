@@ -42,15 +42,13 @@
       .report-head h2 { margin:0; font-size:19px; letter-spacing:-.035em; }
       .report-head p { margin:4px 0 0; color:var(--muted); font-size:12px; }
       .report-switch { display:flex; padding:3px; border-radius:999px; background:#18181b; border:1px solid var(--line); }
-      .report-switch button,.report-subtabs button { border:0; border-radius:999px; padding:7px 12px; background:transparent; color:var(--muted); font-size:13px; font-weight:800; }
-      .report-switch button.active,.report-subtabs button.active { background:var(--green); color:#102015; }
+      .report-switch button { border:0; border-radius:999px; padding:7px 12px; background:transparent; color:var(--muted); font-size:13px; font-weight:800; }
+      .report-switch button.active { background:var(--green); color:#102015; }
       .report-toolbar { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:14px; }
       .report-month-nav { display:flex; align-items:center; gap:8px; }
       .report-month-nav button { width:32px; height:32px; border:1px solid var(--line); border-radius:10px; background:var(--panel-2); color:var(--text); font-size:18px; line-height:1; }
       .report-month-nav strong { min-width:94px; text-align:center; font-size:17px; }
       .report-today { border:1px solid #4d7858; border-radius:999px; padding:7px 10px; background:transparent; color:var(--green); font-size:12px; font-weight:800; }
-      .report-subtabs { display:flex; gap:7px; margin-bottom:12px; }
-      .report-subtabs button { border:1px solid var(--line); border-radius:10px; background:#1a1a1d; }
       .report-weekdays,.report-calendar { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:6px; }
       .report-weekdays { margin-bottom:6px; color:#85858b; font-size:11px; text-align:center; }
       .report-day { min-height:58px; padding:7px 4px 5px; border:1px solid transparent; border-radius:11px; background:#1b1b1e; color:var(--muted); text-align:center; }
@@ -252,16 +250,15 @@
         <div class="report-head"><div><h2 id="report-heading">训练报表</h2><p>从你已保存的真实记录生成</p></div><div class="report-switch" role="tablist" aria-label="报表视图"><button type="button" class="active" data-report-view="history" role="tab" aria-selected="true">历史</button><button type="button" data-report-view="stats" role="tab" aria-selected="false">统计</button></div></div>
         <div id="reportHistoryView">
           <div class="report-toolbar"><div class="report-month-nav"><button type="button" id="reportPrevMonth" aria-label="上个月">‹</button><strong id="reportMonthLabel"></strong><button type="button" id="reportNextMonth" aria-label="下个月">›</button></div><button type="button" class="report-today" id="reportTodayMonth">回到本月</button></div>
-          <div class="report-subtabs" role="tablist" aria-label="记录类型"><button type="button" class="active" role="tab" aria-selected="true">训练</button></div>
           <div class="report-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
           <div class="report-calendar" id="reportCalendar"></div>
-          <p class="report-footnote">日历只显示已保存训练的日期、总容量和次数；点击有记录的日期可查看当天详情。</p>
+          <p class="report-footnote">日历只显示已保存训练的日期、总容量和次数；点击有记录的日期，可查看并分享当天的训练内容。</p>
         </div>
         <div id="reportStatsView" hidden></div>
       </section>
 
       <section aria-labelledby="session-heading">
-        <div class="section-head"><h2 id="session-heading">本次训练</h2><span>不填就留空</span></div>
+        <div class="section-head"><h2 id="session-heading">本次训练</h2><span id="draftStatus" aria-live="polite">草稿会自动存在本机</span></div>
         <div class="meta-grid">
           <div class="meta-field"><label for="dateInput">训练日期</label><input id="dateInput" type="date" /></div>
           <div class="meta-field"><label for="durationInput">训练时长</label><input id="durationInput" inputmode="numeric" placeholder="分钟" /></div>
@@ -281,14 +278,14 @@
 
       <section class="ai-card" aria-labelledby="ai-heading">
         <div class="ai-head"><div><div class="ai-kicker">AI 训练总结</div><h2 id="ai-heading">让今天的记录告诉你下一步</h2><p>只基于你填入的动作、组数、重量和次数生成，不替你编造训练内容。</p></div><button class="ai-button" id="generateSummary">生成总结</button></div>
-        <details class="ai-settings"><summary>配置模型（DeepSeek 或电脑本地模型）</summary><div class="ai-config"><div class="ai-mode" role="group" aria-label="模型模式"><button type="button" class="mode-button active" data-mode="remote">DeepSeek 云端</button><button type="button" class="mode-button" data-mode="local">电脑本地 Ollama</button></div><p class="ai-mode-note" id="aiModeNote"></p><label for="aiEndpoint">接口地址</label><input id="aiEndpoint" inputmode="url" /><label for="aiModel">模型名称</label><input id="aiModel" /><label for="aiKey">API Key <span id="aiKeyHint">（云端需要）</span></label><input id="aiKey" type="password" autocomplete="off" placeholder="只保存在当前页面，不写入训练记录" /><details class="local-setup" id="localSetup" hidden><summary>本地模式怎么启动</summary><strong>电脑开着 Ollama 时可用</strong><span>重新启动本地服务时运行：</span><code>OLLAMA_ORIGINS="https://strength-training-checkin.helen98489848.chatgpt.site" ollama serve</code><code>ollama run deepseek-r1:7b</code></details><button type="button" class="local-test" id="testLocal" hidden>检测本地服务</button><p class="ai-disclosure">生成总结时，训练数据会发送到当前选择的模型。API Key 只保留在当前页面内，刷新后需要重新输入。</p></div></details>
+        <details class="ai-settings"><summary>配置模型（DeepSeek 或电脑本地模型）</summary><div class="ai-config"><div class="ai-mode" role="group" aria-label="模型模式"><button type="button" class="mode-button active" data-mode="remote">DeepSeek 云端</button><button type="button" class="mode-button" data-mode="local">电脑本地 Ollama</button></div><p class="ai-mode-note" id="aiModeNote"></p><label for="aiEndpoint">接口地址</label><input id="aiEndpoint" inputmode="url" /><label for="aiModel">模型名称</label><input id="aiModel" /><label for="aiKey">API Key <span id="aiKeyHint">（云端需要）</span></label><input id="aiKey" type="password" autocomplete="off" placeholder="只保存在当前页面，不写入训练记录" /><details class="local-setup" id="localSetup" hidden><summary>本地模式怎么启动</summary><strong>电脑开着 Ollama 时可用</strong><span>重新启动本地服务时运行：</span><code id="localOriginHint">OLLAMA_ORIGINS="https://你的网站地址" ollama serve</code><code>ollama run deepseek-r1:7b</code></details><button type="button" class="local-test" id="testLocal" hidden>检测本地服务</button><p class="ai-disclosure">生成总结时，训练数据会发送到当前选择的模型。API Key 只保留在当前页面内，刷新后需要重新输入。</p></div></details>
         <div class="ai-output" id="aiOutput" hidden><div class="ai-status">本次训练总结</div><div class="ai-content" id="aiContent"></div></div>
       </section>
 
       <section class="history" aria-labelledby="history-heading"><div class="section-head"><h2 id="history-heading">已保存的训练</h2><div style="display:flex;align-items:center;gap:8px;"><button type="button" class="add-button" id="historyShareBtn" style="border-color:var(--green);font-size:12px;padding:6px 12px;">📤 分享打卡</button><span id="historyCaption">还没有记录</span></div></div><div class="history-list" id="historyList"></div></section>
     </main>
 
-    <div class="action-bar" id="actionBar"><button class="draft" id="saveDraft">保存草稿</button><button class="draft" id="bottomShareBtn" style="color:var(--green);border-color:#4a7553;">📤 分享给教练</button><button class="finish" id="finishWorkout">完成本次训练</button></div>
+    <div class="action-bar" id="actionBar"><button class="draft" id="clearDraft">清空草稿</button><button class="draft" id="bottomShareBtn" style="color:var(--green);border-color:#4a7553;">📤 分享给教练</button><button class="finish" id="finishWorkout">完成本次训练</button></div>
     <div class="toast" id="toast" role="status"></div>
 
     <!-- Coach Viewer Mode -->
@@ -346,12 +343,12 @@
       window.$ = $;
       window.workoutApp = { getState: () => state, blankExercise };
       function loadState() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (!saved || !saved.current || !Array.isArray(saved.sessions)) return blankState(); saved.aiSummary = saved.aiSummary || ''; saved.profile = saved.profile || { weight: '' }; return saved; } catch { return blankState(); } }
-      function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+      function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); renderDraftStatus(); }
       function loadAiConfig() { try { const saved = JSON.parse(localStorage.getItem(AI_CONFIG_KEY)); return { ...DEFAULT_AI_CONFIG, ...saved, remote:{ ...DEFAULT_AI_CONFIG.remote, ...(saved?.remote || {}) }, local:{ ...DEFAULT_AI_CONFIG.local, ...(saved?.local || {}) } }; } catch { return JSON.parse(JSON.stringify(DEFAULT_AI_CONFIG)); } }
       function saveAiConfig() { localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(aiConfig)); }
       function activeAiConfig() { return aiConfig[aiConfig.mode]; }
       function syncAiConfig() { const config = activeAiConfig(); config.endpoint = $('aiEndpoint').value.trim(); config.model = $('aiModel').value.trim(); saveAiConfig(); }
-      function renderAiConfig() { const local = aiConfig.mode === 'local'; const config = activeAiConfig(); document.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('active', button.dataset.mode === aiConfig.mode)); $('aiEndpoint').value = config.endpoint; $('aiModel').value = config.model; $('aiModeNote').textContent = local ? '本地模式不产生 API 费用，但电脑和 Ollama 必须正在运行。' : '云端模式随时可用，会按 DeepSeek API 用量扣费。'; $('aiKey').disabled = local; $('aiKeyHint').textContent = local ? '（本地不需要）' : '（云端需要）'; $('localSetup').hidden = !local; $('testLocal').hidden = !local; }
+      function renderAiConfig() { const local = aiConfig.mode === 'local'; const config = activeAiConfig(); document.querySelectorAll('[data-mode]').forEach(button => button.classList.toggle('active', button.dataset.mode === aiConfig.mode)); $('aiEndpoint').value = config.endpoint; $('aiModel').value = config.model; $('aiModeNote').textContent = local ? '本地模式不产生 API 费用，但电脑和 Ollama 必须正在运行。' : '云端模式随时可用，会按 DeepSeek API 用量扣费。'; $('aiKey').disabled = local; $('aiKeyHint').textContent = local ? '（本地不需要）' : '（云端需要）'; $('localSetup').hidden = !local; $('testLocal').hidden = !local; const origin = /^https?:$/.test(window.location.protocol) ? window.location.origin : 'https://你的网站地址'; $('localOriginHint').textContent = 'OLLAMA_ORIGINS="' + origin + '" ollama serve'; }
       function setAiMode(mode) { syncAiConfig(); aiConfig.mode = mode; saveAiConfig(); renderAiConfig(); }
       function escapeHtml(text) { return String(text || '').replace(/[&<>\"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[char])); }
       function formatDate(value) { if (!value) return '未填写日期'; return new Intl.DateTimeFormat('zh-CN', { month:'numeric', day:'numeric', weekday:'short' }).format(new Date(value + 'T12:00:00')); }
@@ -363,7 +360,7 @@
         const count = state.sessions.length;
         $('goalNumber').textContent = count + ' / 20'; $('goalMeter').style.width = Math.min(count / 20 * 100, 100) + '%'; $('goalCaption').textContent = count ? '还差 ' + Math.max(20 - count, 0) + ' 次真实训练' : '完成一次真实训练后，再记为 1 次';
         $('dateInput').value = state.current.date || ''; $('durationInput').value = state.current.duration || ''; $('weightInput').value = state.profile.weight || ''; $('caloriesInput').value = estimatedCalories(); $('notesInput').value = state.current.notes || ''; $('volumeDisplay').value = totalVolume() ? totalVolume().toLocaleString() + ' kg' : '—';
-        renderExercises(); renderHistory(); renderAi(); renderReport();
+        renderExercises(); renderHistory(); renderAi(); renderReport(); renderDraftStatus();
       }
       function reportMonthLabel(date) { return date.getFullYear() + '年' + (date.getMonth() + 1) + '月'; }
       function reportDateKey(year, month, day) { return year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0'); }
@@ -426,6 +423,38 @@
       function addExercise() { if (window.openExerciseLibrary) { window.openExerciseLibrary(); return; } addCustomExercise(); }
       function addCustomExercise() { state.current.exercises.push(blankExercise()); saveState(); render(); setTimeout(() => { const names = document.querySelectorAll('.exercise-name'); names[names.length - 1]?.focus(); }, 0); }
       function syncMeta() { state.current.date = $('dateInput').value; state.current.duration = $('durationInput').value; state.current.calories = String(estimatedCalories()); state.current.notes = $('notesInput').value; saveState(); }
+      function draftHasContent() {
+        const current = state.current || {};
+        const hasMeta = Boolean(String(current.duration || '').trim()) || Boolean(String(current.notes || '').trim()) || Boolean(current.date && current.date !== blankState().current.date);
+        const hasExercises = (current.exercises || []).some(exercise => String(exercise.name || '').trim() || (exercise.sets || []).some(set => String(set.weight || '').trim() || String(set.reps || '').trim() || set.done));
+        return hasMeta || hasExercises;
+      }
+      function draftSummaryText() {
+        const exercises = state.current.exercises || [];
+        const named = exercises.filter(exercise => String(exercise.name || '').trim()).length;
+        const sets = completedSets();
+        const parts = [];
+        if (named) parts.push(named + ' 个动作');
+        if (sets) parts.push('完成 ' + sets + ' 组');
+        return parts.join(' · ');
+      }
+      function renderDraftStatus() {
+        const node = $('draftStatus');
+        if (!node) return;
+        if (!draftHasContent()) { node.textContent = '草稿会自动存在本机'; node.classList.remove('active'); return; }
+        const detail = draftSummaryText();
+        node.textContent = '✓ 草稿已自动保存' + (detail ? ' · ' + detail : '');
+        node.classList.add('active');
+      }
+      function clearDraft() {
+        if (!draftHasContent()) { showToast('当前没有草稿内容'); return; }
+        if (!window.confirm('确定清空本次未保存的草稿吗？已经保存过的训练记录不受影响。')) return;
+        state.current = blankState().current;
+        state.aiSummary = '';
+        saveState();
+        render();
+        showToast('草稿已清空，可以重新开始');
+      }
       function showToast(message) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2600); }
       function finishWorkout() { syncMeta(); const validExercises = state.current.exercises.filter(exercise => exercise.name.trim() || exercise.sets.some(set => set.weight || set.reps)); if (!validExercises.length) { showToast('先添加至少一个真实动作'); return; } if (validExercises.some(exercise => !exercise.name.trim())) { showToast('请给每个动作填写名称'); return; } const savedSession = { date:state.current.date, duration:state.current.duration, calories:state.current.calories, notes:state.current.notes, volume:totalVolume(), completedSets:completedSets(), exercises:validExercises.map(exercise => ({ ...exercise, name:exercise.name, sets:exercise.sets.map(set => ({...set})) })), aiSummary:state.aiSummary }; state.sessions.unshift(savedSession); state.current = blankState().current; state.aiSummary = ''; saveState(); render(); showToast('本次训练已保存！点击顶部【分享给教练】'); }
       function summarySource() { if (state.current.exercises.length) return { ...state.current, volume:totalVolume(), completedSets:completedSets() }; return state.sessions[0] || null; }
@@ -433,15 +462,30 @@
       async function testLocal() { const button = $('testLocal'); syncAiConfig(); const modelsEndpoint = activeAiConfig().endpoint.replace(/\/chat\/completions\/?$/, '/models'); button.disabled = true; button.textContent = '检测中…'; try { const response = await fetch(modelsEndpoint); if (!response.ok) throw new Error('本地服务返回 ' + response.status); const data = await response.json(); const names = (data.data || []).map(model => model.id).filter(Boolean); showToast(names.length ? '本地服务已连接：' + names[0] : '本地服务已连接'); } catch (error) { showToast('未连接：请启动 Ollama，并检查跨域设置'); } finally { button.disabled = false; button.textContent = '检测本地服务'; } }
 
       // Sharing and Coach Viewer Implementation
-      function browserEncode(data) {
+      const SHARE_ZIP_PREFIX = 'z1';
+      function bytesToBase64Url(bytes) { let bin = ''; for (let i = 0; i < bytes.length; i += 1) bin += String.fromCharCode(bytes[i]); return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); }
+      function base64UrlToBytes(str) { let b64 = str.replace(/-/g, '+').replace(/_/g, '/'); while (b64.length % 4) b64 += '='; const bin = atob(b64); const bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i); return bytes; }
+      function legacyEncode(data) {
         const jsonStr = JSON.stringify(data);
         const utf8Bytes = encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16)));
         return btoa(utf8Bytes).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
       }
-      function browserDecode(str) {
-        let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
-        while (b64.length % 4) b64 += '=';
-        const utf8Bytes = atob(b64);
+      // 优先 deflate-raw 压缩（分享链接能短 3~4 倍）；不支持时退回旧的不压缩编码。
+      async function browserEncode(data) {
+        if (typeof CompressionStream !== 'function') return legacyEncode(data);
+        try {
+          const stream = new Blob([JSON.stringify(data)]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+          return SHARE_ZIP_PREFIX + bytesToBase64Url(new Uint8Array(await new Response(stream).arrayBuffer()));
+        } catch (error) { return legacyEncode(data); }
+      }
+      // 新链接带 z1 前缀；老链接（base64 一定以 JTdC 开头）继续能解，已发出去的不会失效。
+      async function browserDecode(str) {
+        if (String(str).startsWith(SHARE_ZIP_PREFIX)) {
+          if (typeof DecompressionStream !== 'function') throw new Error('当前浏览器不支持打开新版分享链接');
+          const stream = new Blob([base64UrlToBytes(String(str).slice(SHARE_ZIP_PREFIX.length))]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+          return JSON.parse(await new Response(stream).text());
+        }
+        const utf8Bytes = atob((() => { let b64 = String(str).replace(/-/g, '+').replace(/_/g, '/'); while (b64.length % 4) b64 += '='; return b64; })());
         const uriEncoded = Array.prototype.map.call(utf8Bytes, c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('');
         return JSON.parse(decodeURIComponent(uriEncoded));
       }
@@ -603,20 +647,14 @@
               ts: p.totalSets
             }))
           },
-          sessions: state.sessions.slice(0, 15).map(s => ({
+          sessions: state.sessions.slice(0, 20).map(s => ({
             d: s.date || '',
             dur: s.duration || '',
             cal: s.calories || '',
             vol: s.volume || 0,
-            notes: s.notes || '',
-            ex: (s.exercises || []).map(e => ({
-              n: e.name || '',
-              s: (e.sets || []).map(set => ({
-                w: set.weight || '',
-                r: set.reps || '',
-                d: Boolean(set.done)
-              }))
-            }))
+            notes: String(s.notes || '').slice(0, 120),
+            exCount: (s.exercises || []).length,
+            topEx: (s.exercises || []).map(e => e.name || '').filter(Boolean)
           }))
         };
       }
@@ -628,8 +666,8 @@
         return buildSessionShareData(session, sessionIndex);
       }
 
-      function formatShareUrl(payload) {
-        return getBaseShareUrl() + '#share=' + browserEncode(payload);
+      async function formatShareUrl(payload) {
+        return getBaseShareUrl() + '#share=' + await browserEncode(payload);
       }
 
       function generateWeChatText(payload, shareUrl) {
@@ -660,7 +698,7 @@
           t += '\n📅【近期训练记录清单】\n';
           if (payload.sessions && payload.sessions.length) {
             payload.sessions.slice(0, 5).forEach((s, idx) => {
-              const exNames = (s.ex || []).map(e => e.n).filter(Boolean);
+              const exNames = (s.topEx || (s.ex || []).map(e => e.n)).filter(Boolean);
               t += (idx + 1) + '. ' + formatDate(s.d) + (s.dur ? ' · ' + s.dur + '分钟' : '') + (s.vol ? ' · 容量 ' + s.vol.toLocaleString() + 'kg' : '') + '\n';
               if (exNames.length) t += '   动作：' + exNames.slice(0, 3).join('、') + (exNames.length > 3 ? ' 等' : '') + '\n';
             });
@@ -717,15 +755,22 @@
         setTimeout(() => { $('shareModalBackdrop').hidden = true; }, 250);
       }
 
-      function updateShareModalView() {
+      let currentShareUrl = '';
+      let shareRenderToken = 0;
+      async function updateShareModalView() {
+        const token = (shareRenderToken += 1);
         document.querySelectorAll('[data-share-mode]').forEach(b => b.classList.toggle('active', b.dataset.shareMode === currentShareMode));
         const payload = getSharePayload(currentShareMode, activeShareSession, activeShareIndex);
         if (!payload) {
+          currentShareUrl = '';
           $('shareTextPreview').textContent = '暂无训练记录，请先添加动作或保存训练。';
           $('shareUrlDisplay').value = '';
           return;
         }
-        const shareUrl = formatShareUrl(payload);
+        $('shareUrlDisplay').value = '生成中…';
+        const shareUrl = await formatShareUrl(payload);
+        if (token !== shareRenderToken) return;
+        currentShareUrl = shareUrl;
         $('shareUrlDisplay').value = shareUrl;
         $('shareTextPreview').textContent = generateWeChatText(payload, shareUrl);
       }
@@ -741,7 +786,7 @@
         return null;
       }
 
-      function checkAndRenderViewer() {
+      async function checkAndRenderViewer() {
         const code = getShareParamFromUrl();
         if (!code) {
           $('mainApp').hidden = false;
@@ -750,7 +795,7 @@
           return;
         }
         try {
-          const payload = browserDecode(code);
+          const payload = await browserDecode(code);
           renderCoachViewer(payload);
           $('mainApp').hidden = true;
           $('actionBar').hidden = true;
@@ -1018,14 +1063,13 @@
         updateShareModalView();
       });
       $('copyUrlBtn').addEventListener('click', async () => {
-        const url = $('shareUrlDisplay').value;
-        if (!url) return;
-        const ok = await copyToClipboard(url);
+        if (!currentShareUrl) { showToast('链接还在生成，请稍等一下'); return; }
+        const ok = await copyToClipboard(currentShareUrl);
         showToast(ok ? '分享链接已复制！' : '复制失败，请长按手动复制');
       });
       $('copyLinkAndShareBtn').addEventListener('click', async () => {
-        const url = $('shareUrlDisplay').value;
-        if (!url) return;
+        if (!currentShareUrl) { showToast('链接还在生成，请稍等一下'); return; }
+        const url = currentShareUrl;
         if (navigator.share && /mobile|android|iphone|ipad/i.test(navigator.userAgent)) {
           try {
             await navigator.share({
@@ -1055,21 +1099,23 @@
         currentShareMode = state.sessions.length ? 'progress' : 'session';
         openShareModal();
       });
-      $('previewCoachViewBtn')?.addEventListener('click', () => {
+      $('previewCoachViewBtn')?.addEventListener('click', async () => {
         closeShareModal();
-        let payload = getSharePayload(currentShareMode, activeShareSession, activeShareIndex);
+        const payload = getSharePayload(currentShareMode, activeShareSession, activeShareIndex);
         if (!payload || (currentShareMode === 'progress' && !payload.total) || (currentShareMode === 'session' && !payload.ex?.length)) {
           showToast('暂无可分享的真实训练记录，请先完成一次训练');
           return;
         }
-        window.location.hash = '#share=' + browserEncode(payload);
+        window.location.hash = '#share=' + await browserEncode(payload);
       });
       window.addEventListener('hashchange', checkAndRenderViewer);
+      $('exitViewer')?.addEventListener('click', exitViewerMode);
 
-      $('addExercise').addEventListener('click', addExercise); $('saveDraft').addEventListener('click', () => { syncMeta(); showToast('草稿已保存'); }); $('finishWorkout').addEventListener('click', finishWorkout); $('generateSummary').addEventListener('click', generateSummary); $('testLocal').addEventListener('click', testLocal); document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setAiMode(button.dataset.mode))); document.querySelectorAll('[data-report-view]').forEach(button => button.addEventListener('click', () => { reportView = button.dataset.reportView; renderReport(); })); $('reportPrevMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() - 1, 1); renderReportHistory(); }); $('reportNextMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() + 1, 1); renderReportHistory(); }); $('reportTodayMonth').addEventListener('click', () => { reportMonth = new Date(); renderReportHistory(); }); $('aiEndpoint').addEventListener('input', syncAiConfig); $('aiModel').addEventListener('input', syncAiConfig); ['dateInput','durationInput','caloriesInput','notesInput'].forEach(id => $(id).addEventListener('input', syncMeta)); $('durationInput').addEventListener('input', updateCaloriesOnly); $('weightInput').addEventListener('input', () => { state.profile.weight = $('weightInput').value; updateCaloriesOnly(); });
+      $('addExercise').addEventListener('click', addExercise); $('clearDraft').addEventListener('click', clearDraft); $('finishWorkout').addEventListener('click', finishWorkout); $('generateSummary').addEventListener('click', generateSummary); $('testLocal').addEventListener('click', testLocal); document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setAiMode(button.dataset.mode))); document.querySelectorAll('[data-report-view]').forEach(button => button.addEventListener('click', () => { reportView = button.dataset.reportView; renderReport(); })); $('reportPrevMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() - 1, 1); renderReportHistory(); }); $('reportNextMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() + 1, 1); renderReportHistory(); }); $('reportTodayMonth').addEventListener('click', () => { reportMonth = new Date(); renderReportHistory(); }); $('aiEndpoint').addEventListener('input', syncAiConfig); $('aiModel').addEventListener('input', syncAiConfig); ['dateInput','durationInput','caloriesInput','notesInput'].forEach(id => $(id).addEventListener('input', syncMeta)); $('durationInput').addEventListener('input', updateCaloriesOnly); $('weightInput').addEventListener('input', () => { state.profile.weight = $('weightInput').value; updateCaloriesOnly(); });
       if (typeof document.modelContext?.registerTool === 'function') { document.modelContext.registerTool({ name:'read_workout_log', title:'读取训练日志', description:'读取当前训练草稿和已保存的真实训练记录。', inputSchema:{type:'object',properties:{},additionalProperties:false}, annotations:{readOnlyHint:true,untrustedContentHint:true}, execute(){ return { completedCount:state.sessions.length, current:state.current, sessions:state.sessions.slice(0,10) }; } }); document.modelContext.registerTool({ name:'save_workout_session', title:'保存训练记录', description:'保存一条由用户提供的真实训练记录。不会创建预设动作或虚构数据。', inputSchema:{type:'object',properties:{date:{type:'string'},duration:{type:'string'},calories:{type:'string'},notes:{type:'string'},exercises:{type:'array'}},required:['exercises'],additionalProperties:false}, annotations:{readOnlyHint:false,untrustedContentHint:false}, execute(input){ if(!Array.isArray(input.exercises)||!input.exercises.length) throw new Error('至少需要一个真实动作'); const session={date:String(input.date||''),duration:String(input.duration||''),calories:String(input.calories||''),notes:String(input.notes||''),volume:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).reduce((a,set)=>a+(Number(set.weight)||0)*(Number(set.reps)||0),0),0),completedSets:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).filter(set=>set.done).length,0),exercises:input.exercises}; state.sessions.unshift(session); saveState(); render(); return {status:'saved',completedCount:state.sessions.length}; } }); }
       renderAiConfig(); render(); checkAndRenderViewer();
     </script>
+    <script src="female-body-data.js"></script>
     <script src="workout-extras.js"></script>
     <script>
       if ('serviceWorker' in navigator) {

@@ -51,7 +51,7 @@
     return {shapes,labels:[...labels],unknown};
   }
   const optionList = (values, label) => '<option value="">'+label+'</option>'+Object.entries(values).map(([key,value])=>'<option value="'+key+'">'+value+'</option>').join('');
-  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog" id="exerciseLibrary"><header class="extra-header"><h2>3D动作库</h2><button class="extra-close" id="closeLibrary" aria-label="关闭动作库">×</button></header><div class="library-controls"><input id="librarySearch" type="search" placeholder="搜索动作，例如：卧推、深蹲、硬拉、bench press" aria-label="搜索动作"><div class="library-filters"><select id="libraryMuscle" aria-label="按肌群筛选">'+optionList(groups,'全部肌群')+'</select><select id="libraryEquipment" aria-label="按器械筛选">'+optionList(equipment,'全部器械')+'</select></div><p class="library-status" id="libraryStatus"></p><button class="extra-secondary" id="libraryCustom">＋ 自己填写动作</button></div><div id="libraryList" class="library-list"></div><footer class="library-footer">动作库由 <a href="https://github.com/hasaneyldrm/exercises-dataset" target="_blank" rel="noopener">ExerciseDB (exercises-dataset)</a> 提供，3D 白模动图版权归 <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym Visual</a> 所有。<a href="OPEN-SOURCE-LICENSES.txt" target="_blank">开源许可</a></footer></dialog><dialog class="extra-dialog" id="posterDialog"><header class="extra-header"><h2>训练打卡长图</h2><button class="extra-close" id="closePoster" aria-label="关闭打卡图">×</button></header><div class="poster-controls"><label>显示名称<input id="posterName" maxlength="24" placeholder="我的训练"></label></div><img id="posterPreview" class="poster-preview" alt="训练打卡长图，包含肌群分布和动作明细"><div class="poster-actions"><a class="extra-primary" id="downloadPoster" download="训练打卡.png">保存图片</a><button class="extra-secondary" id="sharePoster">分享图片</button></div><p class="poster-note" id="posterNote"></p></dialog>');
+  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog" id="exerciseLibrary"><header class="extra-header"><h2>3D动作库</h2><button class="extra-close" id="closeLibrary" aria-label="关闭动作库">×</button></header><div class="library-controls"><input id="librarySearch" type="search" placeholder="搜索动作，例如：卧推、深蹲、硬拉、bench press" aria-label="搜索动作"><div class="library-filters"><select id="libraryMuscle" aria-label="按肌群筛选">'+optionList(groups,'全部肌群')+'</select><select id="libraryEquipment" aria-label="按器械筛选">'+optionList(equipment,'全部器械')+'</select></div><p class="library-status" id="libraryStatus"></p><button class="extra-secondary" id="libraryCustom">＋ 自己填写动作</button></div><div id="libraryList" class="library-list"></div><footer class="library-footer">动作库由 <a href="https://github.com/hasaneyldrm/exercises-dataset" target="_blank" rel="noopener">ExerciseDB (exercises-dataset)</a> 提供，3D 白模动图版权归 <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym Visual</a> 所有。<a href="OPEN-SOURCE-LICENSES.txt" target="_blank">开源许可</a></footer></dialog><dialog class="extra-dialog" id="posterDialog"><header class="extra-header"><h2>训练打卡长图</h2><button class="extra-close" id="closePoster" aria-label="关闭打卡图">×</button></header><div class="poster-controls"><label>显示名称<input id="posterName" maxlength="24" placeholder="我的训练"></label></div><img id="posterPreview" class="poster-preview" alt="训练打卡长图，包含肌群分布和动作明细" title="点击可全屏放大"><p class="poster-hint">点一下图片可全屏放大查看</p><div class="poster-actions"><a class="extra-primary" id="downloadPoster" download="训练打卡.png">保存图片</a><button class="extra-secondary" id="sharePoster">分享图片</button></div><p class="poster-note" id="posterNote"></p><div class="poster-zoom" id="posterZoom"><button class="poster-zoom-close" id="posterZoomClose" aria-label="关闭放大预览">×</button><img id="posterZoomImg" alt="训练打卡长图放大预览"></div></dialog>');
   const library = $('exerciseLibrary'), poster = $('posterDialog');
   let libraryLimit = 20;
   function openLibrary() { libraryLimit = 20; $('librarySearch').value=''; $('libraryMuscle').value=''; $('libraryEquipment').value=''; renderLibrary(); library.showModal(); }
@@ -59,6 +59,12 @@
   $('closeLibrary').onclick=()=>library.close();
   $('closePoster').onclick=()=>poster.close();
   [library,poster].forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog){const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)dialog.close();}}));
+  const posterZoom = $('posterZoom');
+  const openPosterZoom = () => { const source = $('posterPreview').src; if(!source) return; $('posterZoomImg').src = source; posterZoom.classList.add('show'); };
+  $('posterPreview').addEventListener('click', openPosterZoom);
+  $('posterZoomClose').addEventListener('click', () => posterZoom.classList.remove('show'));
+  posterZoom.addEventListener('click', event => { if(event.target === posterZoom) posterZoom.classList.remove('show'); });
+  poster.addEventListener('close', () => posterZoom.classList.remove('show'));
   $('libraryCustom').onclick=()=>{library.close();addCustomExercise();};
   for(const id of ['librarySearch','libraryMuscle','libraryEquipment'])$(id).addEventListener('input',()=>{ libraryLimit = 20; renderLibrary(); });
   function renderLibrary() {
@@ -149,11 +155,83 @@
     poster.showModal();buildPoster();
   }
   $('posterName').addEventListener('input',()=>{localStorage.setItem('workout-poster-name',$('posterName').value);buildPoster();});
-  function drawBody(ctx,parts,active,x,y,width,height) {
-    ctx.save();ctx.translate(x,y);ctx.scale(width/1000,height/2200);
-    parts.forEach(part=>{ctx.fillStyle=active.has(part.muscle)?'#514596':'#cdd0da';part.polygons.forEach(points=>{
-      const n=points.split(' ').map(Number);ctx.beginPath();ctx.moveTo(n[0],n[1]);for(let i=2;i<n.length;i+=2)ctx.lineTo(n[i],n[i+1]);ctx.closePath();ctx.fill();
-    });});ctx.restore();
+  function drawFemaleBody(ctx,active,x,y,width,height,side) {
+    const model = window.WORKOUT_FEMALE_BODY[side];
+    const mapping = {
+      chest:['CHEST'], neck:['NECK'], trapezius:['TRAPEZIUS'],
+      deltoids:[side==='front'?'FRONT_DELTOIDS':'BACK_DELTOIDS'],
+      biceps:['BICEPS'], triceps:['TRICEPS'], forearm:['FOREARM'],
+      abs:['ABS'], obliques:['OBLIQUES'], 'upper-back':['UPPER_BACK'],
+      'lower-back':['LOWER_BACK'], gluteal:['GLUTEAL','ABDUCTORS'],
+      adductors:['ADDUCTOR'], quadriceps:['QUADRICEPS'], hamstring:['HAMSTRING'],
+      calves:['CALVES','LEFT_SOLEUS','RIGHT_SOLEUS'], tibialis:['CALVES']
+    };
+    const [vx,vy,vw,vh] = model.viewBox;
+    const scale = Math.min(width/vw,height/vh);
+    ctx.save();
+    ctx.translate(x+(width-vw*scale)/2,y+(height-vh*scale)/2);
+    ctx.scale(scale,scale);ctx.translate(-vx,-vy);
+    ctx.strokeStyle='#b8bdca';ctx.lineWidth=2.4;
+    ctx.fillStyle='#fafafd';
+    const outline = new Path2D(model.outline);
+    ctx.fill(outline);ctx.stroke(outline);
+    model.parts.forEach(part=>{
+      if(part.slug==='hair'){
+        // Restyle the source hair into a compact top bun; crop the ponytail.
+        const cx=side==='front'?320:1142;
+        ctx.save();ctx.beginPath();ctx.ellipse(cx,130,78,98,0,0,Math.PI*2);ctx.clip();
+        ctx.fillStyle='#b2b7c6';part.paths.forEach(path=>ctx.fill(new Path2D(path)));ctx.restore();
+        ctx.fillStyle='#b2b7c6';ctx.beginPath();ctx.ellipse(cx,30,31,35,-0.12,0,Math.PI*2);ctx.fill();
+        return;
+      }
+      ctx.fillStyle=(mapping[part.slug]||[]).some(key=>active.has(key))?'#514596':
+        part.slug==='hair'?'#b2b7c6':part.slug==='head'?'#fafafd':'#c7cbd6';
+      part.paths.forEach(path=>ctx.fill(new Path2D(path)));
+    });
+    ctx.restore();
+  }
+  function drawLabeledBody(ctx,active,x,y,side) {
+    const bx=x+65, by=y, bw=200, bh=430;
+    drawFemaleBody(ctx,active,bx,by,bw,bh,side);
+    const model=window.WORKOUT_FEMALE_BODY[side];
+    const [vx,vy,vw,vh]=model.viewBox, scale=Math.min(bw/vw,bh/vh);
+    const labels=side==='front'?[
+      ['上胸',['CHEST'],270,340,'left',87],
+      ['中下胸',['CHEST'],265,395,'left',121],
+      ['二头',['BICEPS'],185,430,'left',174],
+      ['腹部',['ABS','OBLIQUES'],290,540,'left',237],
+      ['股四头',['QUADRICEPS'],245,810,'left',321],
+      ['前束',['FRONT_DELTOIDS'],425,325,'right',73],
+      ['中束',['FRONT_DELTOIDS'],453,355,'right',108],
+      ['前臂',['FOREARM'],500,540,'right',193],
+      ['内收肌',['ADDUCTOR'],352,805,'right',278],
+      ['小腿',['CALVES'],380,1160,'right',370]
+    ]:[
+      ['后束',['BACK_DELTOIDS'],1008,333,'left',93],
+      ['三头',['TRICEPS'],995,440,'left',154],
+      ['下背',['LOWER_BACK'],1100,550,'left',227],
+      ['斜方肌',['TRAPEZIUS'],1180,345,'right',73],
+      ['背部',['UPPER_BACK'],1190,455,'right',141],
+      ['臀部上',['GLUTEAL'],1180,640,'right',211],
+      ['臀部下',['GLUTEAL'],1190,715,'right',252],
+      ['腘绳肌',['HAMSTRING'],1200,850,'right',322],
+      ['小腿',['CALVES'],1200,1120,'right',383]
+    ];
+    ctx.save();ctx.font='18px -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
+    ctx.textBaseline='middle';
+    labels.forEach(([label,keys,px,py,edge,ly])=>{
+      const lit=keys.some(key=>active.has(key));
+      const tx=x+(edge==='left'?0:330), ty=y+ly;
+      const endX=x+(edge==='left'?60:270);
+      const pointX=bx+(bw-vw*scale)/2+(px-vx)*scale;
+      const pointY=by+(bh-vh*scale)/2+(py-vy)*scale;
+      ctx.strokeStyle=lit?'#c6bedf':'#ececf1';ctx.lineWidth=1.1;
+      ctx.beginPath();ctx.moveTo(pointX,pointY);
+      ctx.lineTo(endX+(edge==='left'?12:-12),ty);ctx.lineTo(endX,ty);ctx.stroke();
+      ctx.textAlign=edge==='left'?'left':'right';ctx.fillStyle=lit?'#514596':'#a9adba';
+      ctx.fillText(label,tx,ty);
+    });
+    ctx.restore();
   }
   function buildPoster() {
     if(!posterSession)return;const ticket=++renderId;
@@ -170,13 +248,13 @@
     text(session.date?session.date+' '+new Intl.DateTimeFormat('zh-CN',{weekday:'long'}).format(new Date(session.date+'T12:00:00')):'日期未填写',42,69,25);
     card(36,110,888,620);text($('posterName').value.trim()||'我的训练',76,169,32,'#252051',true);
     text(posterDraft?'本次训练草稿':'已保存的训练',76,205,20,'#79768e');
-    drawBody(ctx,body.front||[],summary.shapes,76,235,220,430);drawBody(ctx,body.back||[],summary.shapes,325,235,220,430);
-    text('正面',160,692,20,'#8b889e');text('背面',414,692,20,'#8b889e');
+    drawLabeledBody(ctx,summary.shapes,50,235,'front');drawLabeledBody(ctx,summary.shapes,390,235,'back');
+    text('正面',192,692,20,'#8b889e');text('背面',532,692,20,'#8b889e');
     const volume=exercises.reduce((sum,ex)=>sum+exerciseVolume(ex),0);
-    text(volume.toLocaleString(),610,280,42,'#30276b',true);text('总容量（kg）',610,316,22,'#8b889e');
-    text(session.duration?session.duration+' 分':'未记录',610,400,36,'#30276b',true);text('训练时长',610,437,22,'#8b889e');
-    text(session.calories?session.calories+' kcal':'未记录',610,518,32,'#30276b',true);text('热量（估算）',610,555,22,'#8b889e');
-    text(exercises.length+' 个动作',610,629,26,'#514596',true);
+    text(volume.toLocaleString(),755,280,32,'#30276b',true);text('总容量（kg）',755,316,20,'#8b889e');
+    text(session.duration?session.duration+' 分':'未记录',755,400,30,'#30276b',true);text('训练时长',755,437,20,'#8b889e');
+    text(session.calories?session.calories+' kcal':'未记录',755,518,26,'#30276b',true);text('热量（估算）',755,555,20,'#8b889e');
+    text(exercises.length+' 个动作',755,629,24,'#514596',true);
     const muscleText=summary.labels.length?'训练部位：'+summary.labels.join('、'):'训练部位未标注';
     text(muscleText,48,779,23,'#514596');
     let y=820;
