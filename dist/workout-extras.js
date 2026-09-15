@@ -53,14 +53,14 @@
   const optionList = (values, label) => '<option value="">'+label+'</option>'+Object.entries(values).map(([key,value])=>'<option value="'+key+'">'+value+'</option>').join('');
   document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog" id="exerciseLibrary"><header class="extra-header"><h2>3D动作库</h2><button class="extra-close" id="closeLibrary" aria-label="关闭动作库">×</button></header><div class="library-controls"><input id="librarySearch" type="search" placeholder="搜索动作，例如：卧推、深蹲、硬拉、bench press" aria-label="搜索动作"><div class="library-filters"><select id="libraryMuscle" aria-label="按肌群筛选">'+optionList(groups,'全部肌群')+'</select><select id="libraryEquipment" aria-label="按器械筛选">'+optionList(equipment,'全部器械')+'</select></div><p class="library-status" id="libraryStatus"></p><button class="extra-secondary" id="libraryCustom">＋ 自己填写动作</button></div><div id="libraryList" class="library-list"></div><footer class="library-footer">动作库由 <a href="https://github.com/hasaneyldrm/exercises-dataset" target="_blank" rel="noopener">ExerciseDB (exercises-dataset)</a> 提供，3D 白模动图版权归 <a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym Visual</a> 所有。<a href="OPEN-SOURCE-LICENSES.txt" target="_blank">开源许可</a></footer></dialog><dialog class="extra-dialog" id="posterDialog"><header class="extra-header"><h2>训练打卡长图</h2><button class="extra-close" id="closePoster" aria-label="关闭打卡图">×</button></header><div class="poster-controls"><label>显示名称<input id="posterName" maxlength="24" placeholder="我的训练"></label></div><img id="posterPreview" class="poster-preview" alt="训练打卡长图，包含肌群分布和动作明细"><div class="poster-actions"><a class="extra-primary" id="downloadPoster" download="训练打卡.png">保存图片</a><button class="extra-secondary" id="sharePoster">分享图片</button></div><p class="poster-note" id="posterNote"></p></dialog>');
   const library = $('exerciseLibrary'), poster = $('posterDialog');
-  let libraryLimit = 40;
-  function openLibrary() { libraryLimit = 40; $('librarySearch').value=''; $('libraryMuscle').value=''; $('libraryEquipment').value=''; renderLibrary(); library.showModal(); }
+  let libraryLimit = 20;
+  function openLibrary() { libraryLimit = 20; $('librarySearch').value=''; $('libraryMuscle').value=''; $('libraryEquipment').value=''; renderLibrary(); library.showModal(); }
   window.openExerciseLibrary = openLibrary;
   $('closeLibrary').onclick=()=>library.close();
   $('closePoster').onclick=()=>poster.close();
   [library,poster].forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target===dialog){const box=dialog.getBoundingClientRect();if(event.clientX<box.left||event.clientX>box.right||event.clientY<box.top||event.clientY>box.bottom)dialog.close();}}));
   $('libraryCustom').onclick=()=>{library.close();addCustomExercise();};
-  for(const id of ['librarySearch','libraryMuscle','libraryEquipment'])$(id).addEventListener('input',()=>{ libraryLimit = 40; renderLibrary(); });
+  for(const id of ['librarySearch','libraryMuscle','libraryEquipment'])$(id).addEventListener('input',()=>{ libraryLimit = 20; renderLibrary(); });
   function renderLibrary() {
     const query=clean($('librarySearch').value), muscle=$('libraryMuscle').value, gear=$('libraryEquipment').value;
     const list=catalog.filter(ex=>{
@@ -69,21 +69,39 @@
       const equipMatch = !gear || ex.equipment === gear;
       return textMatch && muscleMatch && equipMatch;
     });
-    $('libraryStatus').textContent = list.length + ' 个 3D 白模动作 · 点选后填写重量次数';
+    $('libraryStatus').textContent = list.length + ' 个动作 · 默认轻量封面，点图片播放动图';
     const displayed = list.slice(0, libraryLimit);
     $('libraryList').innerHTML = displayed.length ? displayed.map(ex=>{
-      const media = ex.gif || ex.img || '';
-      const image = media ? CDN_BASE + media : '';
+      const thumb = ex.img ? CDN_BASE + ex.img : (ex.gif ? CDN_BASE + ex.gif : '');
+      const gif = ex.gif ? CDN_BASE + ex.gif : '';
       const label = groups[ex.group] || groups[muscleGroups[ex.target]] || '主要部位';
       const eqText = equipment[ex.equipment] || ex.equipment || '其他';
       return '<article class="library-item">' +
-        '<img src="' + image + '" alt="' + escapeHtml(ex.zh) + ' 3D示范" loading="lazy" referrerpolicy="no-referrer">' +
+        '<div class="library-media-wrap" data-gif="' + gif + '" data-thumb="' + thumb + '" title="点我播放/暂停动图">' +
+          '<img src="' + thumb + '" alt="' + escapeHtml(ex.zh) + ' 3D示范" loading="lazy" decoding="async" referrerpolicy="no-referrer">' +
+          (gif ? '<span class="gif-tag">▶ 动图</span>' : '') +
+        '</div>' +
         '<strong>' + escapeHtml(ex.zh) + '</strong>' +
         '<span class="library-en">' + escapeHtml(ex.name) + '</span>' +
         '<span class="library-meta">' + escapeHtml(label) + ' · ' + escapeHtml(eqText) + '</span>' +
         '<button type="button" class="extra-primary" data-library-add="' + ex.id + '">加入训练</button>' +
       '</article>';
     }).join('') + (list.length > libraryLimit ? '<button type="button" class="library-load-more" id="loadMoreExercises">查看更多动作（还有 ' + (list.length - libraryLimit) + ' 个）</button>' : '') : '<p class="library-status" style="grid-column:1/-1;text-align:center;padding:24px 0;">没有匹配动作，可以点击“自己填写动作”。</p>';
+    $('libraryList').querySelectorAll('.library-media-wrap').forEach(wrap => {
+      wrap.onclick = () => {
+        const gif = wrap.dataset.gif;
+        const img = wrap.querySelector('img');
+        const tag = wrap.querySelector('.gif-tag');
+        if (!gif || !img) return;
+        if (img.src === gif) {
+          img.src = wrap.dataset.thumb;
+          if (tag) { tag.textContent = '▶ 动图'; tag.classList.remove('playing'); }
+        } else {
+          img.src = gif;
+          if (tag) { tag.textContent = '■ 动图中'; tag.classList.add('playing'); }
+        }
+      };
+    });
     $('libraryList').querySelectorAll('img').forEach(img=>{img.onerror=()=>{img.style.opacity='0.25';};});
     $('libraryList').querySelectorAll('[data-library-add]').forEach(button=>button.onclick=()=>{
       const ex=catalog.find(item=>item.id===button.dataset.libraryAdd);if(!ex)return;
@@ -92,7 +110,7 @@
       const cards=document.querySelectorAll('[data-exercise]');cards[cards.length-1]?.scrollIntoView({block:'center',behavior:'smooth'});
     });
     const loadBtn = $('loadMoreExercises');
-    if (loadBtn) loadBtn.onclick = () => { libraryLimit += 40; renderLibrary(); };
+    if (loadBtn) loadBtn.onclick = () => { libraryLimit += 20; renderLibrary(); };
   }
   function addMuscleControls() {
     document.querySelectorAll('#exerciseList [data-exercise]').forEach(card=>{
