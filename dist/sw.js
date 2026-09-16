@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workout-cache-v7-dark-theme';
+const CACHE_NAME = 'workout-cache-v9-vault';
 const STATIC_ASSETS = [
   './',
   'index.html',
@@ -40,8 +40,10 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // HTML 页面请求：网络优先，保证每次上线后用户立刻拿到最新版本；断网时回退到缓存
-  if (event.request.mode === 'navigate') {
+  // 本站资源（HTML / JS / CSS / JSON）：网络优先。
+  // 这些文件都带 ETag，未改动时协商返回 304、传输 0 字节，所以"每次都问服务器"并不慢；
+  // 换来的是上线后用户第一次打开就是最新版，不需要手动刷新好几遍。断网时回退缓存。
+  if (url.origin === self.location.origin) {
     event.respondWith(
       fetch(event.request).then(networkResponse => {
         if (networkResponse && networkResponse.status === 200) {
@@ -54,8 +56,8 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // 针对本站资源 或 动作库 CDN 图片：采用缓存优先（Stale-While-Revalidate）
-  if (url.origin === self.location.origin || url.hostname.includes('jsdelivr.net')) {
+  // 动作库 CDN 图片：体积大、内容基本不变，继续用缓存优先（Stale-While-Revalidate）
+  if (url.hostname.includes('jsdelivr.net')) {
     event.respondWith(
       caches.open(CACHE_NAME).then(cache => {
         return cache.match(event.request).then(cachedResponse => {
@@ -66,7 +68,6 @@ self.addEventListener('fetch', event => {
             return networkResponse;
           }).catch(() => cachedResponse);
 
-          // 命中缓存则 0 毫秒立即返回，后台自动拉取更新
           return cachedResponse || fetchPromise;
         });
       })

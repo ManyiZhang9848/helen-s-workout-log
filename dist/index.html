@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="zh-CN">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#121214" />
-    <meta name="description" content="记录真实完成的力量训练动作、组数、重量与次数。" />
+<html lang="zh-CN" data-page-node-id="ADO2BFG7smfHaKL7LNWOt6">
+  <head data-page-node-id="FRQfKehdFZVK3eAAEvkr2j">
+    <meta charset="UTF-8" data-page-node-id="fi9qJCPGdEizT6imzZ5jiX" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" data-page-node-id="sL9M3i9XwUb7lSDMwxypnQ" />
+    <meta name="theme-color" content="#121214" data-page-node-id="eVDw3vDI2DFeEL7JHpIpHn" />
+    <meta name="description" content="记录真实完成的力量训练动作、组数、重量与次数。" data-page-node-id="LRSGM5YdJ0T89OpuPq1OjG" />
     <title>训练日志 · 20 次打卡</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2358bd70'/%3E%3Cpath d='M9 12h4v8H9zm10 0h4v8h-4zM13 14h6v4h-6z' fill='%23121414'/%3E%3C/svg%3E" />
-    <link rel="manifest" href="manifest.json" />
-    <link rel="apple-touch-icon" href="icon.svg" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="健身打卡" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2358bd70'/%3E%3Cpath d='M9 12h4v8H9zm10 0h4v8h-4zM13 14h6v4h-6z' fill='%23121414'/%3E%3C/svg%3E" data-page-node-id="eYh65LzKR9OvEl04xXElfi" />
+    <link rel="manifest" href="manifest.json" data-page-node-id="K2IyEvoEavvpYtdOeD99tS" />
+    <link rel="apple-touch-icon" href="icon.svg" data-page-node-id="EB4Xo9wJMgA290CIwotNVr" />
+    <meta name="apple-mobile-web-app-capable" content="yes" data-page-node-id="vPb3EIFzCOF70tT1j9B2TL" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" data-page-node-id="YgAa0Up4spskCwolsEtlth" />
+    <meta name="apple-mobile-web-app-title" content="健身打卡" data-page-node-id="PH8VGNWD0rgGnnUGcjoGI2" />
     <style>
       :root { --bg:#121214; --panel:#242427; --panel-2:#303034; --line:#3b3b40; --text:#f5f5f2; --muted:#a9a9ad; --green:#58bd70; --green-dark:#1d4f2b; --radius:22px; color-scheme:dark; font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif; }
       * { box-sizing:border-box; }
@@ -27,6 +27,11 @@
       .share-trigger-btn { border:1px solid #4a7553; border-radius:999px; padding:7px 13px; background:rgba(88,189,112,.13); color:var(--green); font-size:13px; font-weight:850; display:inline-flex; align-items:center; gap:5px; transition:all .2s; }
       .share-trigger-btn:hover { background:rgba(88,189,112,.24); border-color:var(--green); }
       .goal { color:var(--muted); font-size:14px; white-space:nowrap; }
+      /* 手机上顶部栏要挤下「品牌 + 动作宝典 + 分享给教练 + 目标 20 次」四块，
+         362px 根本不够：品牌被折成 WORKOUT / LOG 两行，两个按钮也各折两行。
+         「目标 20 次」与正下方目标卡里 22px 的「0 / 20」是同一信息，且顶部栏
+         不是吸顶的（滚动即离开视野），所以在手机上隐去它，其余三项即可单行排下。 */
+      @media (max-width:560px) { .goal { display:none; } }
       .intro { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:28px; }
       h1 { margin:0; font-size:clamp(32px,7vw,46px); line-height:1; letter-spacing:-.06em; }
       .intro p { max-width:245px; margin:0; color:var(--muted); font-size:14px; line-height:1.55; text-align:right; }
@@ -72,11 +77,28 @@
       .section-head { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:0 0 14px; }
       .section-head h2 { margin:0; font-size:19px; letter-spacing:-.035em; }
       .section-head span { color:var(--muted); font-size:13px; }
-      .meta-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-bottom:10px; }
+      /* 草稿状态位：已改成 .draft-pill-btn（内含 .draft-dot 圆点）按钮，
+         有草稿时由 JS 给**按钮**加 .active，配色落在 workout-extras.css 的
+         .draft-pill-btn.active / .draft-pill-btn.active .draft-dot 上。
+         早先这里曾有一条 .section-head span#draftStatus.active 规则，
+         但 .active 已不再加到该 span 上，规则永远不会命中，故删除。 */
+      /* 第一列固定 154px 专给「训练日期」：原生 date 控件要同时放下 "2026/09/16"
+         和右侧日历图标，实测约需 130px，加上 .meta-field 左右各 12px 内边距即 154px。
+         原先 5 等分时每格内容宽只有 101px，会把「日」和图标一起裁掉（只显示 2026/09/）。
+         注意不能只给 input 设 min-width：.meta-field 带 min-width:0，1fr 轨道的最小值
+         会被压到 0，input 只会溢出格子、压到隔壁卡片上，并不会把列撑开。
+         其余四列用 minmax(0,1fr)，窄屏时可以让位，不会横向溢出。
+         字号必须留在 16px，否则 iOS 聚焦输入框时会放大整个页面。 */
+      .meta-grid { display:grid; grid-template-columns:154px repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:10px; }
+      /* 5 列排布需要「154 + 4 列 + 4 个 10px 间距」≈ 600px 内容宽，
+         再窄下去后面四列会被压到 68px 以内，「总容量」的 5 位数就会被裁。
+         提前到 640px 就折成两列（手机端媒体查询在 560px 处会再覆盖一次，取值相同）。 */
+      @media (max-width:640px) { .meta-grid { grid-template-columns:repeat(2,1fr); } }
       .meta-note { margin:0 0 30px; color:var(--muted); font-size:12px; line-height:1.5; }
       .meta-field { min-width:0; padding:13px 12px; border:1px solid var(--line); border-radius:16px; background:var(--panel); }
       .meta-field label { display:block; margin-bottom:7px; color:var(--muted); font-size:12px; }
-      .meta-field input { width:100%; min-width:0; font-size:16px; font-weight:750; }
+      .meta-field input { width:100%; min-width:0; padding:12px 0; font-size:16px; font-weight:750; }
+      .meta-field input[type="date"] { min-width:130px; }
       .meta-field input::placeholder { color:#69696e; font-weight:600; }
       .add-button { border:1px solid #4d7858; border-radius:999px; padding:10px 13px; background:transparent; color:var(--green); font-size:14px; font-weight:800; }
       .empty { display:grid; justify-items:center; gap:12px; padding:32px 20px; margin-bottom:28px; border:1px dashed #515157; border-radius:20px; text-align:center; }
@@ -88,21 +110,25 @@
       .exercise { padding:18px 16px 14px; border:1px solid var(--line); border-radius:20px; background:var(--panel); }
       .exercise-head { display:grid; grid-template-columns:44px 1fr auto; align-items:center; gap:12px; margin-bottom:18px; }
       .exercise-index { display:grid; place-items:center; width:44px; height:44px; border-radius:14px; background:var(--panel-2); color:var(--green); font-size:16px; font-weight:850; }
-      .exercise-name { width:100%; padding:0; font-size:20px; font-weight:850; letter-spacing:-.035em; }
+      .exercise-name { width:100%; padding:10px 0; font-size:20px; font-weight:850; letter-spacing:-.035em; }
       .exercise-name::placeholder { color:#6e6e73; }
-      .remove { border:0; background:transparent; color:#88888e; font-size:20px; line-height:1; padding:5px; }
-      .set-header,.set-row { display:grid; grid-template-columns:35px 1fr 14px 1fr 34px; align-items:center; gap:8px; }
+      .remove { border:0; background:transparent; color:#88888e; font-size:20px; line-height:1; padding:12px; }
+      .set-header,.set-row { display:grid; grid-template-columns:35px 1fr 14px 1fr 44px; align-items:center; gap:8px; }
       .set-header { padding:0 8px 8px; color:#85858b; font-size:12px; }
       .set-row { min-height:47px; padding:6px 8px; border-top:1px solid #37373c; }
       .set-number { color:var(--muted); font-size:14px; }
-      .set-input { width:100%; padding:8px 10px; border:1px solid transparent; border-radius:10px; background:#1a1a1d; font-size:16px; }
+      .set-input { width:100%; padding:12px 10px; border:1px solid transparent; border-radius:10px; background:#1a1a1d; font-size:16px; }
       .set-input:focus { border-color:var(--green); }
       .set-input::placeholder { color:#68686e; font-size:13px; }
       .times { color:var(--muted); text-align:center; }
-      .done-check { display:grid; place-items:center; width:25px; height:25px; border:1px solid #65656b; border-radius:50%; background:transparent; color:transparent; font-size:14px; font-weight:900; }
-      .done-check.checked { border-color:var(--green); background:var(--green); color:#142319; }
+      /* 健身房里单手反复点「完成」：按钮真实热区 44×44（拇指好按），
+         里面那圈 25px 才是视觉圆点。用真实子元素而不是 ::after，
+         保证四个方向都能命中。 */
+      .done-check { display:grid; place-items:center; width:44px; height:44px; border:0; background:transparent; color:transparent; }
+      .done-check span { display:grid; place-items:center; width:25px; height:25px; border:1px solid #65656b; border-radius:50%; font-size:14px; font-weight:900; }
+      .done-check.checked span { border-color:var(--green); background:var(--green); color:#142319; }
       .set-actions { display:flex; justify-content:space-between; align-items:center; padding:12px 8px 0; }
-      .add-set { border:0; padding:0; background:transparent; color:var(--green); font-size:14px; font-weight:800; }
+      .add-set { border:0; padding:12px 4px; background:transparent; color:var(--green); font-size:14px; font-weight:800; }
       .volume { color:var(--muted); font-size:12px; }
       .notes { display:grid; gap:9px; margin:0 0 26px; }
       .notes label { color:var(--muted); font-size:13px; }
@@ -143,9 +169,11 @@
       .history-card p { grid-column:1 / -1; margin:0; color:var(--muted); font-size:13px; }
       .history-card time { color:var(--muted); font-size:12px; }
       .history-card .history-stats { color:var(--green); font-size:13px; font-weight:750; }
-      .history-card-actions { grid-column:1 / -1; display:flex; justify-content:flex-end; padding-top:4px; }
+      .history-card-actions { grid-column:1 / -1; display:flex; justify-content:flex-end; gap:8px; padding-top:4px; }
       .history-share-btn { border:1px solid #3c5442; border-radius:8px; padding:4px 10px; background:#1b241e; color:var(--green); font-size:12px; font-weight:800; cursor:pointer; }
       .history-share-btn:hover { border-color:var(--green); }
+      .history-del-btn { border:1px solid #5a3c3c; border-radius:8px; padding:4px 10px; background:#241b1b; color:#e08a8a; font-size:12px; font-weight:800; cursor:pointer; }
+      .history-del-btn:hover { border-color:#e08a8a; }
       .action-bar { position:fixed; right:0; bottom:0; left:0; z-index:4; display:flex; justify-content:center; gap:10px; padding:14px 18px calc(14px + env(safe-area-inset-bottom)); border-top:1px solid #36363a; background:rgba(18,18,20,.94); backdrop-filter:blur(14px); }
       .action-bar button { flex:1; max-width:220px; padding:14px 6px; border-radius:14px; font-weight:850; font-size:14px; }
       .draft { border:1px solid var(--line); background:var(--panel-2); color:var(--text); }
@@ -226,122 +254,257 @@
       .viewer-btn-primary { background:var(--green); color:#102015; border:1px solid var(--green); }
       .viewer-btn-secondary { background:var(--panel-2); color:var(--text); border:1px solid var(--line); }
 
-      @media (max-width:560px) { .app { padding:22px 14px 34px; } .topbar { margin-bottom:28px; } .topbar-actions { gap:8px; } .share-trigger-btn { padding:6px 10px; font-size:12px; } .intro { display:block; } h1 { margin-bottom:12px; } .intro p { max-width:none; text-align:left; } .goal-card { align-items:flex-start; flex-direction:column; gap:12px; } .goal-meter { width:100%; } .report-card { padding:15px 12px; } .report-head { align-items:flex-start; flex-direction:column; gap:10px; } .report-switch { width:100%; } .report-switch button { flex:1; } .report-day { min-height:54px; } .report-day-volume { font-size:9px; } .meta-grid { grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:10px; } .meta-note { margin-bottom:28px; } .meta-field { padding:12px 11px; } .exercise { padding:16px 10px 13px; } .exercise-head { grid-template-columns:39px 1fr auto; gap:9px; } .exercise-index { width:39px; height:39px; border-radius:12px; } .exercise-name { font-size:18px; } .set-header,.set-row { grid-template-columns:25px 1fr 12px 1fr 30px; gap:6px; padding-left:4px; padding-right:4px; } .set-input { padding:8px 8px; } .set-header { font-size:11px; } .viewer-meta-grid { grid-template-columns:repeat(2,1fr); } .viewer-kpi-grid { grid-template-columns:repeat(2,1fr); } .viewer-pr-grid { grid-template-columns:1fr; } .share-actions { grid-template-columns:1fr; } .viewer-actions { flex-direction:column; } }
+      @media (max-width:560px) { .app { padding:22px 14px 34px; } .topbar { margin-bottom:28px; } .topbar-actions { gap:8px; } .share-trigger-btn { padding:6px 10px; font-size:12px; } .intro { display:block; } h1 { margin-bottom:12px; } .intro p { max-width:none; text-align:left; } .goal-card { align-items:flex-start; flex-direction:column; gap:12px; } .goal-meter { width:100%; } .report-card { padding:15px 12px; } .report-head { align-items:flex-start; flex-direction:column; gap:10px; } .report-switch { width:100%; } .report-switch button { flex:1; } .report-day { min-height:54px; } .report-day-volume { font-size:9px; } .meta-grid { grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:10px; } .meta-note { margin-bottom:28px; } .meta-field { padding:12px 11px; } .exercise { padding:16px 10px 13px; } .exercise-head { grid-template-columns:39px 1fr auto; gap:9px; } .exercise-index { width:39px; height:39px; border-radius:12px; } .exercise-name { font-size:18px; } .set-header,.set-row { grid-template-columns:25px 1fr 12px 1fr 44px; gap:6px; padding-left:4px; padding-right:4px; } .set-input { padding:12px 8px; } .set-header { font-size:11px; } .viewer-meta-grid { grid-template-columns:repeat(2,1fr); } .viewer-kpi-grid { grid-template-columns:repeat(2,1fr); } .viewer-pr-grid { grid-template-columns:1fr; } .share-actions { grid-template-columns:1fr; } .viewer-actions { flex-direction:column; } }
       @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
     </style>
   </head>
-  <body>
-    <main class="app" id="mainApp">
-      <header class="topbar">
-        <span class="brand">Workout log</span>
-        <div class="topbar-actions">
-          <button type="button" class="share-trigger-btn" id="openShareModal">📤 分享给教练</button>
-          <span class="goal">目标 20 次</span>
+  <body data-page-node-id="VHDBXqUiBm2Yf8AKGO9dCv">
+    <main class="app" id="mainApp" data-page-node-id="NHpAPQh11c2XJkHUcDAAHF">
+      <header class="topbar" data-page-node-id="YLMzrAfOXzJf5JvUMWjHsp">
+        <span class="brand" data-page-node-id="m70w0vzMFVGgnHeS2CYdz2">Workout log</span>
+        <div class="topbar-actions" data-page-node-id="ib7YMlRZKNUKMArdYyU6Od">
+          <button type="button" class="vault-trigger-btn" id="openVaultBtn">📖 动作宝典 <span class="vault-badge" id="vaultBadge">0</span></button>
+          <button type="button" class="share-trigger-btn" id="openShareModal" data-page-node-id="EPLvapGyc0MPIE1b38mXbd">📤 分享给教练</button>
+          <span class="goal" data-page-node-id="dqYl023YJagZECdKTZHDzM">目标 20 次</span>
         </div>
       </header>
-      <section class="intro"><div><h1>训练记录</h1><p>只记录你真实完成的动作、重量和次数。</p></div></section>
+      <section class="intro" data-page-node-id="KvUiZvpwEkzEKBzMS3h3Fc"><div data-page-node-id="YPg6xGuHhAfzHCpuRMnIfb"><h1 data-page-node-id="CCYjMJHDO4fKURCfrVpA3Z">训练记录</h1><p data-page-node-id="5Mu6XvxV1FrU0BssTFkFG7">只记录你真实完成的动作、重量和次数。</p></div></section>
 
-      <section class="goal-card" aria-live="polite">
-        <div class="goal-copy"><strong>训练打卡</strong><span id="goalCaption">完成一次真实训练后，再记为 1 次</span><div class="goal-meter" aria-hidden="true"><i id="goalMeter"></i></div></div>
-        <div class="goal-number" id="goalNumber">0 / 20</div>
+      <section class="goal-card" aria-live="polite" data-page-node-id="WH2AYAoETCXfXsdvwc5BST">
+        <div class="goal-copy" data-page-node-id="bDPhSm7CIYCWF6gguiVRor"><strong data-page-node-id="Rc7cijFlLAfsWNsVNnwSv8">训练打卡</strong><span id="goalCaption" data-page-node-id="DsgrrIaGq6bI9jH9YtEaEH">完成一次真实训练后，再记为 1 次</span><div class="goal-meter" aria-hidden="true" data-page-node-id="smRZBehAGBfREhoICVdTvF"><i id="goalMeter" data-page-node-id="MCWpYZ7e5RlP5IhHEurHyR"></i></div></div>
+        <div class="goal-number" id="goalNumber" data-page-node-id="Hd8t5RVHbphxMcabW1NXnn">0 / 20</div>
       </section>
 
-      <section class="report-card" aria-labelledby="report-heading">
-        <div class="report-head"><div><h2 id="report-heading">训练报表</h2><p>从你已保存的真实记录生成</p></div><div class="report-switch" role="tablist" aria-label="报表视图"><button type="button" class="active" data-report-view="history" role="tab" aria-selected="true">历史</button><button type="button" data-report-view="stats" role="tab" aria-selected="false">统计</button></div></div>
-        <div id="reportHistoryView">
-          <div class="report-toolbar"><div class="report-month-nav"><button type="button" id="reportPrevMonth" aria-label="上个月">‹</button><strong id="reportMonthLabel"></strong><button type="button" id="reportNextMonth" aria-label="下个月">›</button></div><button type="button" class="report-today" id="reportTodayMonth">回到本月</button></div>
-          <div class="report-weekdays" aria-hidden="true"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
-          <div class="report-calendar" id="reportCalendar"></div>
-          <p class="report-footnote">日历只显示已保存训练的日期、总容量和次数；点击有记录的日期，可查看并分享当天的训练内容。</p>
+      <section class="report-card" aria-labelledby="report-heading" data-page-node-id="W2oiLhlq6bf8Ep5OhYe9Eu">
+        <div class="report-head" data-page-node-id="T5BVI7KEEi277JhHoSSrWo"><div data-page-node-id="jhomKHiEWvpouD12FEeeNr"><h2 id="report-heading" data-page-node-id="vL8EAoyD6LnGiYYivpAGaj">训练报表</h2><p data-page-node-id="CkHecd80I1JjxbmuPCiTHh">从你已保存的真实记录生成</p></div><div class="report-switch" role="tablist" aria-label="报表视图" data-page-node-id="HFC3zczaSVVtd798uEfC8D"><button type="button" class="active" data-report-view="history" role="tab" aria-selected="true" data-page-node-id="ff7i3Hof4zU9NiLcY1LaZQ">历史</button><button type="button" data-report-view="stats" role="tab" aria-selected="false" data-page-node-id="VdbpxbOVAasv53RtyvSwVY">统计</button></div></div>
+        <div id="reportHistoryView" data-page-node-id="rqqTKDHHOm61Th35KaSxtB">
+          <div class="report-toolbar" data-page-node-id="iqBcVNBPmYXuHlFKWfwTlx"><div class="report-month-nav" data-page-node-id="mvSck66Lp5WXA3zO6RKJqB"><button type="button" id="reportPrevMonth" aria-label="上个月" data-page-node-id="SUK47j8M8lBm446SA7wX6t">‹</button><strong id="reportMonthLabel" data-page-node-id="xJZCOCEHz6ZNNGN2gnWjkC"></strong><button type="button" id="reportNextMonth" aria-label="下个月" data-page-node-id="LxrlZbCv49FqDPhYSLdbcw">›</button></div><button type="button" class="report-today" id="reportTodayMonth" data-page-node-id="9VpWBD6RLyIxCZLEMi5qeE">回到本月</button></div>
+          <div class="report-weekdays" aria-hidden="true" data-page-node-id="ovl8qDACopU2Dit40vtUlw"><span data-page-node-id="XSfQMBpj8yLJdzIpB0qn8H">一</span><span data-page-node-id="I8GulXxbiA14QHkifvjq2E">二</span><span data-page-node-id="VqWYdb2KMGklRqNXzPM9bB">三</span><span data-page-node-id="8ywK8EfEwJjC2tXjHMV7ov">四</span><span data-page-node-id="7nsBEmxvC9FBuWzgy9NdBu">五</span><span data-page-node-id="BglXxxnqNkQA8qt1eAUHuB">六</span><span data-page-node-id="fqh8kinDvrRZbEGfx4ZlcA">日</span></div>
+          <div class="report-calendar" id="reportCalendar" data-page-node-id="JSDvFq9BFnUryJsEHsCSlQ"></div>
+          <p class="report-footnote" data-page-node-id="tHcqCLkxkoCqhbRKN3TnFt">日历只显示已保存训练的日期、总容量和次数；点击有记录的日期，可查看并分享当天的训练内容。</p>
         </div>
-        <div id="reportStatsView" hidden></div>
+        <div id="reportStatsView" hidden data-page-node-id="DwzOih18Jvzv7hJ8y57eG2"></div>
       </section>
 
-      <section aria-labelledby="session-heading">
-        <div class="section-head"><h2 id="session-heading">本次训练</h2><span id="draftStatus" aria-live="polite">草稿会自动存在本机</span></div>
-        <div class="meta-grid">
-          <div class="meta-field"><label for="dateInput">训练日期</label><input id="dateInput" type="date" /></div>
-          <div class="meta-field"><label for="durationInput">训练时长</label><input id="durationInput" inputmode="numeric" placeholder="分钟" /></div>
-          <div class="meta-field"><label for="weightInput">体重（kg）</label><input id="weightInput" inputmode="decimal" placeholder="如 65" aria-label="体重，用于估算热量，会一直记住" /></div>
-          <div class="meta-field"><label for="caloriesInput">热量（估算）</label><input id="caloriesInput" inputmode="numeric" placeholder="填时长后自动算" readonly aria-label="热量消耗（按体重与时长估算）" /></div>
-          <div class="meta-field"><label>总容量</label><input id="volumeDisplay" value="—" readonly aria-label="总容量" /></div>
+      <section aria-labelledby="session-heading" data-page-node-id="Abtty86Jax8YK8r2fYPUKC">
+        <div class="section-head" data-page-node-id="PGugAPksWhLdfHAiJU9oOr"><h2 id="session-heading" data-page-node-id="FknXrkEcP3DlkBNh2Hn1rb">本次训练</h2><button type="button" class="draft-pill-btn" id="openDraftModal" aria-label="查看草稿详情与管理"><span class="draft-dot"></span><span id="draftStatus">草稿会自动存在本机</span> <span style="font-size:10px; opacity:.7;">▾</span></button></div>
+        <div class="meta-grid" data-page-node-id="KCC1yfbZp97zkEUD2nrr61">
+          <div class="meta-field" data-page-node-id="60fSyQfXVon1zBHoqrSW73"><label for="dateInput" data-page-node-id="kuoeccf3t3ln65HPsLdSrf">训练日期</label><input id="dateInput" type="date" data-page-node-id="B473UpmRivcD3VF81J176w" /></div>
+          <div class="meta-field" data-page-node-id="prxTJdziDQPbkD125Z9hXF"><label for="durationInput" data-page-node-id="T1PCehENFwxIAgYOTjljaN">训练时长</label><input id="durationInput" inputmode="numeric" placeholder="分钟" data-page-node-id="Cy692lhaQWvGG1KZMe1n8x" /></div>
+          <div class="meta-field" data-page-node-id="oGSO9SGS1YpO42AUfgAVrn"><label for="weightInput" data-page-node-id="lGKcRyGksAfZP2V9Adm1C1">体重（kg）</label><input id="weightInput" inputmode="decimal" placeholder="如 65" aria-label="体重，用于估算热量，会一直记住" data-page-node-id="tRw4cVh1KeDHS9HPiAncgJ" /></div>
+          <div class="meta-field" data-page-node-id="MJaRz9nw1C7eupnW0DlC5B"><label for="caloriesInput" data-page-node-id="UBjFvnGkIGDkCU7HvEyxFN">热量（估算）</label><input id="caloriesInput" inputmode="numeric" placeholder="自动计算" readonly aria-label="热量消耗（按体重与时长估算）" data-page-node-id="XtL4OrQ199gWZWUKbsBdc9" /></div>
+          <div class="meta-field" data-page-node-id="Dp0YjxfRAsuO2tcP8uUpY3"><label data-page-node-id="mbrzJe71DFOl0REDvQx6WT">总容量</label><input id="volumeDisplay" value="—" readonly aria-label="总容量" data-page-node-id="n84KbOTXN047et3XErEwDP" /></div>
         </div>
-        <p class="meta-note">热量按「体重 × 时长 × 5.0 MET」估算，力量训练强度系数，仅供粗略参考；填了体重和时长才会算。</p>
+        <p class="meta-note" data-page-node-id="gVV4jx2SIQPprTHMLm25YM">热量按「体重 × 时长 × 5.0 MET」估算，力量训练强度系数，仅供粗略参考；填了体重和时长才会算。</p>
       </section>
 
-      <section aria-labelledby="exercise-heading">
-        <div class="section-head"><h2 id="exercise-heading">动作记录</h2><button class="add-button" id="addExercise">＋ 添加动作</button></div>
-        <div id="exerciseList"></div>
+      <section aria-labelledby="exercise-heading" data-page-node-id="BnwLPxh3lsK1dr4BLiFvFt">
+        <div class="section-head" data-page-node-id="VjOOpH89jVbkhYAETsNUTS"><h2 id="exercise-heading" data-page-node-id="ItPEvZOcUxvwO4MeKHLwdx">动作记录</h2><button class="add-button" id="addExercise" data-page-node-id="M6HBW0pcgKtzkHxsxbe9ki">＋ 添加动作</button></div>
+        <div id="exerciseList" data-page-node-id="gGRnPLxF3cruie8sV6rq8D"></div>
       </section>
 
-      <section class="notes" aria-labelledby="notes-heading"><label id="notes-heading" for="notesInput">训练备注（可选）</label><textarea id="notesInput" maxlength="300" placeholder="记录今天的感受、教练提醒，或下一次想调整的地方"></textarea></section>
+      <section class="notes" aria-labelledby="notes-heading" data-page-node-id="dn7H2sVTlQIBiebtIywBZE"><label id="notes-heading" for="notesInput" data-page-node-id="wh2nO1l2XoAdq2B7OSX4CH">训练备注（可选）</label><textarea id="notesInput" maxlength="300" placeholder="记录今天的感受、教练提醒，或下一次想调整的地方"></textarea></section>
 
-      <section class="ai-card" aria-labelledby="ai-heading">
-        <div class="ai-head"><div><div class="ai-kicker">AI 训练总结</div><h2 id="ai-heading">让今天的记录告诉你下一步</h2><p>只基于你填入的动作、组数、重量和次数生成，不替你编造训练内容。</p></div><button class="ai-button" id="generateSummary">生成总结</button></div>
-        <details class="ai-settings"><summary>配置模型（DeepSeek 或电脑本地模型）</summary><div class="ai-config"><div class="ai-mode" role="group" aria-label="模型模式"><button type="button" class="mode-button active" data-mode="remote">DeepSeek 云端</button><button type="button" class="mode-button" data-mode="local">电脑本地 Ollama</button></div><p class="ai-mode-note" id="aiModeNote"></p><label for="aiEndpoint">接口地址</label><input id="aiEndpoint" inputmode="url" /><label for="aiModel">模型名称</label><input id="aiModel" /><label for="aiKey">API Key <span id="aiKeyHint">（云端需要）</span></label><input id="aiKey" type="password" autocomplete="off" placeholder="只保存在当前页面，不写入训练记录" /><details class="local-setup" id="localSetup" hidden><summary>本地模式怎么启动</summary><strong>电脑开着 Ollama 时可用</strong><span>重新启动本地服务时运行：</span><code id="localOriginHint">OLLAMA_ORIGINS="https://你的网站地址" ollama serve</code><code>ollama run deepseek-r1:7b</code></details><button type="button" class="local-test" id="testLocal" hidden>检测本地服务</button><p class="ai-disclosure">生成总结时，训练数据会发送到当前选择的模型。API Key 只保留在当前页面内，刷新后需要重新输入。</p></div></details>
-        <div class="ai-output" id="aiOutput" hidden><div class="ai-status">本次训练总结</div><div class="ai-content" id="aiContent"></div></div>
+      <section class="ai-card" aria-labelledby="ai-heading" data-page-node-id="dBwlZrzEyxv849HVxbbeYi">
+        <div class="ai-head" data-page-node-id="IECsHFv9ypPo0rO9JGOnXL"><div data-page-node-id="oxFcPXgzGlfgItRpUP3pdo"><div class="ai-kicker" data-page-node-id="Crz4oeYToJtp8R7qo6AhFK">AI 训练总结</div><h2 id="ai-heading" data-page-node-id="a3fJXX8vPwSxjBEZ63muAG">让今天的记录告诉你下一步</h2><p data-page-node-id="seKjLz6y2gkby1IVg2YAF8">只基于你填入的动作、组数、重量和次数生成，不替你编造训练内容。</p></div><button class="ai-button" id="generateSummary" data-page-node-id="tBLKmwyM9oq5mwKYcebtwz">生成总结</button></div>
+        <details class="ai-settings" data-page-node-id="lawR4DBFhZqMAaFBDbGDHj"><summary data-page-node-id="SLH2rS5PzioBJF8YNq1f5T">配置模型（DeepSeek 或电脑本地模型）</summary><div class="ai-config" data-page-node-id="iJLH2obhtPx8ghetOxwHHP"><div class="ai-mode" role="group" aria-label="模型模式" data-page-node-id="lwGnoIXz5aINZNHjnJnCaM"><button type="button" class="mode-button active" data-mode="remote" data-page-node-id="3UBOTFsbYfOHehMxjHdMEX">DeepSeek 云端</button><button type="button" class="mode-button" data-mode="local" data-page-node-id="3sfYM7RKAgAjFMGgpsU6ZB">电脑本地 Ollama</button></div><p class="ai-mode-note" id="aiModeNote" data-page-node-id="bKZQYoXxgCu3GTjxmhyLHF"></p><label for="aiEndpoint" data-page-node-id="fGhItlTxAMEq3hN6u9xcu2">接口地址</label><input id="aiEndpoint" inputmode="url" data-page-node-id="55FjBYYSUHUHI4wgFsw6jw" /><label for="aiModel" data-page-node-id="v08AAjtsEH7Fr0OuohSocQ">模型名称</label><input id="aiModel" data-page-node-id="vBXdOQ9gSy0DvhQ5EhrE28" /><label for="aiKey" data-page-node-id="PaFKYKVzsPHepUY86GNZ4E">API Key <span id="aiKeyHint" data-page-node-id="WbDPHzht7o568Fwrd3WbR4">（云端需要）</span></label><input id="aiKey" type="password" autocomplete="off" placeholder="只保存在当前页面，不写入训练记录" data-page-node-id="niacD2R3jIFYlsUP2gSgxd" /><details class="local-setup" id="localSetup" hidden data-page-node-id="OCbW4PR6BBnDfJyZEDbjfg"><summary data-page-node-id="5Q4wIZKkU36VEZVE6oDzQ6">本地模式怎么启动</summary><strong data-page-node-id="DpEVICyVzk3gbwO7fTTKZ9">电脑开着 Ollama 时可用</strong><span data-page-node-id="Y7Q1qXqDQCMAlIHVJetjBC">重新启动本地服务时运行：</span><code id="localOriginHint" data-page-node-id="neql2nF8E99n1asD4crif4">OLLAMA_ORIGINS="https://你的网站地址" ollama serve</code><code data-page-node-id="MVSkgrUYUYETSk77Rmbbp1">ollama run deepseek-r1:7b</code></details><button type="button" class="local-test" id="testLocal" hidden data-page-node-id="kc22lQdlrczLr1NF4rjQo5">检测本地服务</button><p class="ai-disclosure" data-page-node-id="BL482umimuSyfmbMMn8CGI">生成总结时，训练数据会发送到当前选择的模型。API Key 只保留在当前页面内，刷新后需要重新输入。</p></div></details>
+        <div class="ai-output" id="aiOutput" hidden data-page-node-id="V4w8NBCwBSxN9Sg4Iyekag"><div class="ai-status" data-page-node-id="lSQ2YanfJLPF9h29nkAX4c">本次训练总结</div><div class="ai-content" id="aiContent" data-page-node-id="hUIs39XgriQCmZYOMgy4cF"></div></div>
       </section>
 
-      <section class="history" aria-labelledby="history-heading"><div class="section-head"><h2 id="history-heading">已保存的训练</h2><div style="display:flex;align-items:center;gap:8px;"><button type="button" class="add-button" id="historyShareBtn" style="border-color:var(--green);font-size:12px;padding:6px 12px;">📤 分享打卡</button><span id="historyCaption">还没有记录</span></div></div><div class="history-list" id="historyList"></div></section>
+      <section class="history" aria-labelledby="history-heading" data-page-node-id="nvq6d3HHOyl2VmY5zsdUeC"><div class="section-head" data-page-node-id="LvTJdazzf4EnHBE4HcwpyN"><h2 id="history-heading" data-page-node-id="eOoA9vDTPgQ52Vto9zEOMs">已保存的训练</h2><div style="display:flex;align-items:center;gap:8px;" data-page-node-id="tPQgzCATm1qkTkcEEU81SK"><button type="button" class="add-button" id="historyShareBtn" style="border-color:var(--green);font-size:12px;padding:6px 12px;" data-page-node-id="dk4s7eh0Pt9DVMEtra7UHU">📤 分享打卡</button><span id="historyCaption" data-page-node-id="Bhu6kjJBDRVkLNrG9EHgIh">还没有记录</span></div></div><div class="history-list" id="historyList" data-page-node-id="3LwbzJZGtE8YufFA2cDXtx"></div></section>
     </main>
 
-    <div class="action-bar" id="actionBar"><button class="draft" id="clearDraft">清空草稿</button><button class="draft" id="bottomShareBtn" style="color:var(--green);border-color:#4a7553;">📤 分享给教练</button><button class="finish" id="finishWorkout">完成本次训练</button></div>
-    <div class="toast" id="toast" role="status"></div>
+    <div class="action-bar" id="actionBar" data-page-node-id="aoIFID2PgPBZpEjy4HVXDN"><button class="draft" id="clearDraft" data-page-node-id="qFNLksjCxR9fImdSErgwFy">清空草稿</button><button class="draft" id="bottomShareBtn" style="color:var(--green);border-color:#4a7553;" data-page-node-id="tcRk2E6MB7NsE2Ewtzn4vl">📤 分享给教练</button><button class="finish" id="finishWorkout" data-page-node-id="3EB788NUc8x0cwgD1QNkpQ">完成本次训练</button></div>
+    <div class="toast" id="toast" role="status" data-page-node-id="vFIrCWDGlNnYaGI8O38Xkc"></div>
 
     <!-- Coach Viewer Mode -->
-    <main class="viewer-app" id="coachViewer" hidden aria-labelledby="viewerBannerTitle">
-      <div class="viewer-banner">
-        <div class="viewer-banner-tag"><span aria-hidden="true">👀</span><strong id="viewerBannerTitle">教练/访客查阅模式（只读）</strong></div>
-        <button type="button" class="exit-viewer-btn" id="exitViewer">退出查阅 / 进入我的打卡</button>
+    <main class="viewer-app" id="coachViewer" hidden aria-labelledby="viewerBannerTitle" data-page-node-id="6X5l5QeFGLDAfGXeBdjpOd">
+      <div class="viewer-banner" data-page-node-id="5pRR7XcrAgUxFc0huD813b">
+        <div class="viewer-banner-tag" data-page-node-id="HRx6ydSAV9Hb8KzDDGQH0M"><span aria-hidden="true" data-page-node-id="hY436I5gyuo5NwZPfCTQXB">👀</span><strong id="viewerBannerTitle" data-page-node-id="SyeYNufJDDDKNHKmxIikqo">教练/访客查阅模式（只读）</strong></div>
+        <button type="button" class="exit-viewer-btn" id="exitViewer" data-page-node-id="XeO4LwX3R1PJquATPxIxJh">退出查阅 / 进入我的打卡</button>
       </div>
-      <div id="viewerContent"></div>
+      <div id="viewerContent" data-page-node-id="2OoUTh0xYVNKI5JQmTxA6t"></div>
     </main>
 
     <!-- Share Modal -->
-    <div class="modal-backdrop" id="shareModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle" hidden>
-      <div class="modal">
-        <div class="modal-head">
-          <div>
-            <h3 id="shareModalTitle">分享打卡给教练</h3>
-            <p>生成免登录直接查看的专属链接与微信日报</p>
+    <div class="modal-backdrop" id="shareModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="shareModalTitle" hidden data-page-node-id="l3YQGGK4KoilvwRiTM6Ee4">
+      <div class="modal" data-page-node-id="4UzsnR3pcMWlZHPEVQWqyj">
+        <div class="modal-head" data-page-node-id="G1eb0FCjwScvfcXXn0SGt4">
+          <div data-page-node-id="S2VqKu1cs5buYp6mz1wZOP">
+            <h3 id="shareModalTitle" data-page-node-id="OKKmtE8sA3aaBzsqpmuTPH">分享打卡给教练</h3>
+            <p data-page-node-id="Qozjgh8mxHQQLSHcU6QL2S">生成免登录直接查看的专属链接与微信日报</p>
           </div>
-          <button type="button" class="modal-close" id="closeShareModal" aria-label="关闭">×</button>
+          <button type="button" class="modal-close" id="closeShareModal" aria-label="关闭" data-page-node-id="W8JsXetYI1JHdqzBGTZjcx">×</button>
         </div>
-        <div class="share-tabs" role="tablist">
-          <button type="button" class="share-tab active" data-share-mode="session" id="shareTabSession">本次/最新训练</button>
-          <button type="button" class="share-tab" data-share-mode="progress" id="shareTabProgress">累计进度 (打卡总览)</button>
+        <div class="share-tabs" role="tablist" data-page-node-id="yj9D4WcQn1TPJMhcaOPilk">
+          <button type="button" class="share-tab active" data-share-mode="session" id="shareTabSession" data-page-node-id="GRucOgEFbbvtWIVBKHwwgS">本次/最新训练</button>
+          <button type="button" class="share-tab" data-share-mode="progress" id="shareTabProgress" data-page-node-id="3k04iCPDoFkOAZD8i5nanB">累计进度 (打卡总览)</button>
         </div>
-        <div class="share-preview-box">
-          <div class="share-preview-head"><span>微信打卡文字预览</span><span>可直接发送</span></div>
-          <div class="share-preview-text" id="shareTextPreview"></div>
+        <div class="share-preview-box" data-page-node-id="TelqEDjgYUSGYP7Hi3QpHR">
+          <div class="share-preview-head" data-page-node-id="lnzAVFpeCfyBqFVBFpt7B3"><span data-page-node-id="hMvfiVj0hMqmsjEnH2asjK">微信打卡文字预览</span><span data-page-node-id="wxnjmRrFfn7rpiSm02TFsd">可直接发送</span></div>
+          <div class="share-preview-text" id="shareTextPreview" data-page-node-id="xou0TDhIqhyegbQwD7EmEG"></div>
         </div>
-        <div class="share-url-row">
-          <input class="share-url-input" id="shareUrlDisplay" readonly aria-label="专属分享链接" />
-          <button type="button" class="copy-url-btn" id="copyUrlBtn">复制链接</button>
+        <div class="share-url-row" data-page-node-id="kRs2vKtvS5pum9bmDcgXAs">
+          <input class="share-url-input" id="shareUrlDisplay" readonly aria-label="专属分享链接" data-page-node-id="VTHSBAH51CXKGdgBl5cMcd" />
+          <button type="button" class="copy-url-btn" id="copyUrlBtn" data-page-node-id="vhTwtXDhy57F3sK760Gp1f">复制链接</button>
         </div>
-        <div class="share-actions" style="margin-bottom:10px;">
-          <button type="button" class="modal-action-btn modal-action-primary" id="copyLinkAndShareBtn">🔗 复制教练专属链接</button>
-          <button type="button" class="modal-action-btn modal-action-secondary" id="copyWeChatTextBtn">📋 复制微信文字日报</button>
+        <div class="share-actions" style="margin-bottom:10px;" data-page-node-id="xiYBemtKVGvqV51s0nlEKk">
+          <button type="button" class="modal-action-btn modal-action-primary" id="copyLinkAndShareBtn" data-page-node-id="xYEwJdqYi8SrSTUMcopO2r">🔗 复制教练专属链接</button>
+          <button type="button" class="modal-action-btn modal-action-secondary" id="copyWeChatTextBtn" data-page-node-id="YCLEDrBe7SISGtXWI6ReiO">📋 复制微信文字日报</button>
         </div>
-        <button type="button" class="modal-action-btn modal-action-secondary" id="previewCoachViewBtn" style="width:100%; border-color:#4a7553; color:var(--green); background:#1a2b1f;">👀 在当前页面直接预览教练视角</button>
+        <button type="button" class="modal-action-btn modal-action-secondary" id="previewCoachViewBtn" style="width:100%; border-color:#4a7553; color:var(--green); background:#1a2b1f;" data-page-node-id="NEy1qrbqFZG66GUi7UJPhg">👀 在当前页面直接预览教练视角</button>
       </div>
     </div>
 
-    <link rel="stylesheet" href="workout-extras.css?v=20260915_dark" />
+    <!-- 动作宝典 (教学级知识库) -->
+    <dialog class="extra-dialog vault-dialog" id="vaultModal">
+      <header class="extra-header">
+        <div>
+          <h2 style="font-size:20px; letter-spacing:-.03em; margin:0;">📖 我的动作宝典</h2>
+          <span class="vault-head-sub" id="vaultCountSub" style="font-size:12px; color:var(--muted); margin-top:3px; display:block;">已沉淀 0 个动作教学要领</span>
+        </div>
+        <button class="extra-close" id="closeVault" aria-label="关闭动作宝典">×</button>
+      </header>
+      <div class="vault-controls">
+        <div class="vault-search-box">
+          <input id="vaultSearch" type="search" placeholder="搜索动作、器械或口诀要领..." aria-label="搜索动作宝典" />
+        </div>
+        <div class="vault-pills" id="vaultPills" role="tablist">
+          <button type="button" class="vault-pill active" data-vault-group="">全部</button>
+          <button type="button" class="vault-pill" data-vault-group="chest">胸部</button>
+          <button type="button" class="vault-pill" data-vault-group="back">背部</button>
+          <button type="button" class="vault-pill" data-vault-group="legs">腿部</button>
+          <button type="button" class="vault-pill" data-vault-group="glutes">臀部</button>
+          <button type="button" class="vault-pill" data-vault-group="shoulders">肩部</button>
+          <button type="button" class="vault-pill" data-vault-group="arms">手臂</button>
+          <button type="button" class="vault-pill" data-vault-group="core">核心</button>
+        </div>
+      </div>
+      <div id="vaultList" class="vault-list"></div>
+    </dialog>
+
+    <!-- 草稿管理弹窗 -->
+    <dialog class="extra-dialog draft-modal" id="draftModal">
+      <header class="extra-header">
+        <div>
+          <h2 style="font-size:20px; margin:0;">💾 本次训练草稿</h2>
+          <span style="font-size:12px; color:var(--green); margin-top:3px; display:block;">● 实时自动保存在本机，刷新不丢失</span>
+        </div>
+        <button class="extra-close" id="closeDraftModal" aria-label="关闭">×</button>
+      </header>
+      <div class="draft-modal-body" style="padding:18px 16px;">
+        <div class="draft-stats-card">
+          <div class="draft-stat-item">
+            <span class="draft-stat-k">训练日期</span>
+            <strong class="draft-stat-v" id="draftModalDate">--</strong>
+          </div>
+          <div class="draft-stat-item">
+            <span class="draft-stat-k">记录动作</span>
+            <strong class="draft-stat-v" id="draftModalExercises">0 个动作</strong>
+          </div>
+          <div class="draft-stat-item">
+            <span class="draft-stat-k">完成组数</span>
+            <strong class="draft-stat-v green" id="draftModalSets">0 组</strong>
+          </div>
+          <div class="draft-stat-item">
+            <span class="draft-stat-k">累计总容量</span>
+            <strong class="draft-stat-v" id="draftModalVolume">0 kg</strong>
+          </div>
+        </div>
+
+        <div class="draft-memo-box">
+          <span style="font-weight:800; color:var(--green); font-size:13px; display:block; margin-bottom:4px;">💡 为什么不需要手动保存草稿？</span>
+          <p style="margin:0; font-size:13px; color:#c7c7cc; line-height:1.6;">
+            你在【本次训练】填写的每一个动作、重量、次数或教学口诀，都会<strong>即时保存在当前设备浏览器中</strong>。中途切换微信、锁屏或刷新网页，内容都会完好保留。<br>
+            当整堂课全部练完后，点击屏幕最下方的【完成本次训练】，就会正式记入你的 20 次总打卡进度中！
+          </p>
+        </div>
+
+        <div class="draft-actions-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px;">
+          <button type="button" class="extra-primary" id="continueDraftBtn" style="padding:12px; font-size:14px;">继续记录</button>
+          <button type="button" class="extra-secondary" id="clearDraftInModalBtn" style="padding:12px; font-size:14px; color:#f87171; border-color:#5c2929;">清空当前草稿</button>
+        </div>
+      </div>
+    </dialog>
+
+    <link rel="stylesheet" href="workout-extras.css?v=20260916_vault" data-page-node-id="xtV5QddAx3lujE2utp3aJu" />
     <script src="catalog-data.js"></script>
     <script>
       const STORAGE_KEY = 'strength-workout-log-v2';
       const AI_CONFIG_KEY = 'strength-ai-config-v1';
       const DEFAULT_AI_CONFIG = { mode:'remote', remote:{ endpoint:'https://api.deepseek.com/chat/completions', model:'deepseek-v4-flash' }, local:{ endpoint:'http://localhost:11434/v1/chat/completions', model:'deepseek-r1:7b' } };
-      const blankExercise = () => ({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()), name: '', sets: [{ weight: '', reps: '', done: false }] });
-      const blankState = () => ({ profile: { weight: '' }, current: { date: new Date().toISOString().slice(0,10), duration: '', calories: '', notes: '', exercises: [] }, sessions: [], aiSummary: '' });
+      // 本地日期 YYYY-MM-DD。不能用 toISOString()：它按 UTC 取日期，
+      // 北京时间 08:00 之前会算成"昨天"，早练打卡就会记到前一天。
+      function localDateStr(d = new Date()) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      }
+      function cleanName(text) {
+        return String(text || '').trim().toLowerCase().replace(/\s+/g, '');
+      }
+      const VAULT_STORAGE_KEY = 'strength-knowledge-vault-v1';
+      function initVaultFromHistory() {
+        const vault = {};
+        if (Array.isArray(state?.sessions)) {
+          [...state.sessions].reverse().forEach(s => {
+            (s.exercises || []).forEach(ex => {
+              const rawName = (ex.name || '').trim();
+              if (!rawName) return;
+              const key = cleanName(rawName);
+              if (!vault[key]) {
+                vault[key] = {
+                  name: rawName,
+                  tips: ex.tips || '',
+                  catalogId: ex.catalogId || '',
+                  muscleGroup: ex.muscleGroup || '',
+                  updatedAt: s.date || ''
+                };
+              } else {
+                if (ex.tips) vault[key].tips = ex.tips;
+                if (s.date) vault[key].updatedAt = s.date;
+                if (ex.catalogId) vault[key].catalogId = ex.catalogId;
+                if (ex.muscleGroup) vault[key].muscleGroup = ex.muscleGroup;
+              }
+            });
+          });
+        }
+        return vault;
+      }
+      function loadVault() {
+        try {
+          const raw = localStorage.getItem(VAULT_STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed === 'object') return parsed;
+          }
+          return initVaultFromHistory();
+        } catch {
+          return {};
+        }
+      }
+      function saveVault(vault) {
+        try {
+          localStorage.setItem(VAULT_STORAGE_KEY, JSON.stringify(vault));
+        } catch (e) {}
+        updateVaultBadge();
+        if (typeof window.renderVaultList === 'function') window.renderVaultList();
+      }
+      function updateVaultBadge() {
+        const vault = loadVault();
+        const count = Object.values(vault).filter(item => item.tips && item.tips.trim()).length;
+        const badge = $('vaultBadge');
+        if (badge) badge.textContent = count;
+        const countSub = $('vaultCountSub');
+        if (countSub) countSub.textContent = '已沉淀 ' + count + ' 个动作教学要领';
+      }
+      const blankExercise = () => ({ id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()), name: '', tips: '', sets: [{ weight: '', reps: '', done: false }] });
+      const blankState = () => ({ profile: { weight: '' }, current: { date: localDateStr(), duration: '', calories: '', notes: '', exercises: [] }, sessions: [], aiSummary: '' });
       let state = loadState();
       let aiConfig = loadAiConfig();
       let reportView = 'history';
       let reportMonth = new Date();
       const $ = id => document.getElementById(id);
       window.$ = $;
-      window.workoutApp = { getState: () => state, blankExercise };
+      window.workoutApp = { getState: () => state, blankExercise, loadVault, saveVault, updateVaultBadge, cleanName };
       function loadState() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (!saved || !saved.current || !Array.isArray(saved.sessions)) return blankState(); saved.aiSummary = saved.aiSummary || ''; saved.profile = saved.profile || { weight: '' }; return saved; } catch { return blankState(); } }
       function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); renderDraftStatus(); }
       function loadAiConfig() { try { const saved = JSON.parse(localStorage.getItem(AI_CONFIG_KEY)); return { ...DEFAULT_AI_CONFIG, ...saved, remote:{ ...DEFAULT_AI_CONFIG.remote, ...(saved?.remote || {}) }, local:{ ...DEFAULT_AI_CONFIG.local, ...(saved?.local || {}) } }; } catch { return JSON.parse(JSON.stringify(DEFAULT_AI_CONFIG)); } }
@@ -360,7 +523,7 @@
         const count = state.sessions.length;
         $('goalNumber').textContent = count + ' / 20'; $('goalMeter').style.width = Math.min(count / 20 * 100, 100) + '%'; $('goalCaption').textContent = count ? '还差 ' + Math.max(20 - count, 0) + ' 次真实训练' : '完成一次真实训练后，再记为 1 次';
         $('dateInput').value = state.current.date || ''; $('durationInput').value = state.current.duration || ''; $('weightInput').value = state.profile.weight || ''; $('caloriesInput').value = estimatedCalories(); $('notesInput').value = state.current.notes || ''; $('volumeDisplay').value = totalVolume() ? totalVolume().toLocaleString() + ' kg' : '—';
-        renderExercises(); renderHistory(); renderAi(); renderReport(); renderDraftStatus();
+        renderExercises(); renderHistory(); renderAi(); renderReport(); renderDraftStatus(); updateVaultBadge();
       }
       function reportMonthLabel(date) { return date.getFullYear() + '年' + (date.getMonth() + 1) + '月'; }
       function reportDateKey(year, month, day) { return year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0'); }
@@ -402,20 +565,71 @@
       }
       function renderExercises() {
         if (!state.current.exercises.length) { $('exerciseList').innerHTML = '<div class="empty"><div class="empty-mark">＋</div><strong>还没有动作记录</strong><p>添加你今天实际完成的第一个动作，重量和次数都可以之后再补。</p><button class="add-button" id="emptyAdd">添加第一个动作</button></div>'; $('emptyAdd').addEventListener('click', addExercise); return; }
-        $('exerciseList').innerHTML = '<div class="exercise-list">' + state.current.exercises.map((exercise, exerciseIndex) => '<article class="exercise" data-exercise="' + exercise.id + '"><div class="exercise-head"><div class="exercise-index">' + String(exerciseIndex + 1).padStart(2,'0') + '</div><input class="exercise-name" data-field="name" value="' + escapeHtml(exercise.name) + '" placeholder="动作名称" aria-label="动作名称" /><button class="remove" data-action="remove-exercise" aria-label="删除动作">×</button></div><div class="set-header"><span>组</span><span>重量（kg）</span><span></span><span>次数</span><span>完成</span></div>' + exercise.sets.map((set, setIndex) => '<div class="set-row" data-set="' + setIndex + '"><span class="set-number">' + (setIndex + 1) + '</span><input class="set-input" data-field="weight" inputmode="decimal" value="' + escapeHtml(set.weight) + '" placeholder="—" aria-label="第 ' + (setIndex + 1) + ' 组重量" /><span class="times">×</span><input class="set-input" data-field="reps" inputmode="numeric" value="' + escapeHtml(set.reps) + '" placeholder="—" aria-label="第 ' + (setIndex + 1) + ' 组次数" /><button class="done-check ' + (set.done ? 'checked' : '') + '" data-action="toggle-set" aria-label="第 ' + (setIndex + 1) + ' 组完成">✓</button></div>').join('') + '<div class="set-actions"><button class="add-set" data-action="add-set">＋ 添加一组</button><span class="volume">容量 ' + exerciseVolume(exercise).toLocaleString() + ' kg</span></div></article>').join('') + '</div>';
-        $('exerciseList').querySelectorAll('[data-exercise]').forEach(card => { const exercise = state.current.exercises.find(item => item.id === card.dataset.exercise); card.querySelector('[data-field="name"]').addEventListener('input', event => { exercise.name = event.target.value; saveState(); }); card.querySelector('[data-action="remove-exercise"]').addEventListener('click', () => { state.current.exercises = state.current.exercises.filter(item => item.id !== exercise.id); saveState(); render(); }); card.querySelector('[data-action="add-set"]').addEventListener('click', () => { exercise.sets.push({ weight:'', reps:'', done:false }); saveState(); render(); }); card.querySelectorAll('.set-row').forEach(row => { const set = exercise.sets[Number(row.dataset.set)]; row.querySelector('[data-field="weight"]').addEventListener('input', event => { set.weight = event.target.value; saveState(); updateVolumeOnly(); }); row.querySelector('[data-field="reps"]').addEventListener('input', event => { set.reps = event.target.value; saveState(); updateVolumeOnly(); }); row.querySelector('[data-action="toggle-set"]').addEventListener('click', () => { set.done = !set.done; saveState(); render(); }); }); });
+        $('exerciseList').innerHTML = '<div class="exercise-list">' + state.current.exercises.map((exercise, exerciseIndex) => '<article class="exercise" data-exercise="' + exercise.id + '"><div class="exercise-head"><div class="exercise-index">' + String(exerciseIndex + 1).padStart(2,'0') + '</div><input class="exercise-name" data-field="name" value="' + escapeHtml(exercise.name) + '" placeholder="动作名称" aria-label="动作名称" /><button class="remove" data-action="remove-exercise" aria-label="删除动作">×</button></div><div class="set-header"><span>组</span><span>重量（kg）</span><span></span><span>次数</span><span>完成</span></div>' + exercise.sets.map((set, setIndex) => '<div class="set-row" data-set="' + setIndex + '"><span class="set-number">' + (setIndex + 1) + '</span><input class="set-input" data-field="weight" inputmode="decimal" value="' + escapeHtml(set.weight) + '" placeholder="—" aria-label="第 ' + (setIndex + 1) + ' 组重量" /><span class="times">×</span><input class="set-input" data-field="reps" inputmode="numeric" value="' + escapeHtml(set.reps) + '" placeholder="—" aria-label="第 ' + (setIndex + 1) + ' 组次数" /><button class="done-check ' + (set.done ? 'checked' : '') + '" data-action="toggle-set" aria-label="第 ' + (setIndex + 1) + ' 组完成"><span>✓</span></button></div>').join('') + '<div class="set-actions"><button class="add-set" data-action="add-set">＋ 添加一组</button><span class="volume">容量 ' + exerciseVolume(exercise).toLocaleString() + ' kg</span></div><div class="exercise-tips-wrap"><div class="exercise-tips-head"><span class="exercise-tips-title">💡 动作要领 &amp; 教学口诀</span><span class="exercise-tips-hint">自动存入动作宝典</span></div><textarea class="exercise-tips-input" data-field="tips" placeholder="记录教练指导的器械调节、发力口诀或避坑细节..." maxlength="300">' + escapeHtml(exercise.tips || '') + '</textarea></div></article>').join('') + '</div>';
+        $('exerciseList').querySelectorAll('[data-exercise]').forEach(card => {
+          const exercise = state.current.exercises.find(item => item.id === card.dataset.exercise);
+          if (!exercise) return;
+          card.querySelector('[data-field="name"]').addEventListener('input', event => {
+            exercise.name = event.target.value;
+            const key = cleanName(exercise.name);
+            if (key) {
+              const vault = loadVault();
+              if (vault[key] && vault[key].tips && !exercise.tips) {
+                exercise.tips = vault[key].tips;
+                const tipsInput = card.querySelector('[data-field="tips"]');
+                if (tipsInput) tipsInput.value = exercise.tips;
+                showToast('已自动带出「' + vault[key].name + '」教学要领');
+              }
+            }
+            saveState();
+          });
+          const tipsInput = card.querySelector('[data-field="tips"]');
+          if (tipsInput) {
+            tipsInput.addEventListener('input', event => {
+              exercise.tips = event.target.value;
+              saveState();
+            });
+          }
+          card.querySelector('[data-action="remove-exercise"]').addEventListener('click', () => { state.current.exercises = state.current.exercises.filter(item => item.id !== exercise.id); saveState(); render(); });
+          card.querySelector('[data-action="add-set"]').addEventListener('click', () => {
+            const lastSet = exercise.sets[exercise.sets.length - 1];
+            const prevW = lastSet ? lastSet.weight : '';
+            const prevR = lastSet ? lastSet.reps : '';
+            exercise.sets.push({ weight: prevW, reps: prevR, done: false });
+            saveState();
+            render();
+          });
+          card.querySelectorAll('.set-row').forEach(row => {
+            const set = exercise.sets[Number(row.dataset.set)];
+            row.querySelector('[data-field="weight"]').addEventListener('input', event => { set.weight = event.target.value; saveState(); updateVolumeOnly(); });
+            row.querySelector('[data-field="reps"]').addEventListener('input', event => { set.reps = event.target.value; saveState(); updateVolumeOnly(); });
+            row.querySelector('[data-action="toggle-set"]').addEventListener('click', () => { set.done = !set.done; saveState(); render(); });
+          });
+        });
       }
       function exerciseVolume(exercise) { return exercise.sets.reduce((sum, set) => sum + ((Number(set.weight) || 0) * (Number(set.reps) || 0)), 0); }
       function updateVolumeOnly() { const volume = totalVolume(); $('volumeDisplay').value = volume ? volume.toLocaleString() + ' kg' : '—'; document.querySelectorAll('.volume').forEach((node, index) => { node.textContent = '容量 ' + exerciseVolume(state.current.exercises[index]).toLocaleString() + ' kg'; }); saveState(); }
       function updateCaloriesOnly() { const value = estimatedCalories(); state.current.calories = String(value); $('caloriesInput').value = value; saveState(); }
       function renderHistory() {
-        $('historyCaption').textContent = state.sessions.length ? '最近 ' + Math.min(state.sessions.length, 10) + ' 次' : '还没有记录';
-        $('historyList').innerHTML = state.sessions.length ? state.sessions.slice(0,10).map((session, index) => '<article class="history-card"><strong>' + formatDate(session.date) + '</strong><time>' + (session.duration ? escapeHtml(session.duration) + ' 分钟' : '时长未填') + '</time><div class="history-stats">' + session.exercises.length + ' 个动作 · ' + (session.volume ? session.volume.toLocaleString() + ' kg' : '容量未填') + '</div><p>' + (session.notes ? escapeHtml(session.notes) : '已完成训练记录') + '</p><div class="history-card-actions"><button type="button" class="history-share-btn" data-share-index="' + index + '">📤 分享此条给教练</button></div></article>').join('') : '<div class="history-empty">完成并保存一次训练后，真实记录会显示在这里。</div>';
+        $('historyCaption').textContent = state.sessions.length ? '共 ' + state.sessions.length + ' 次' : '还没有记录';
+        $('historyList').innerHTML = state.sessions.length ? state.sessions.map((session, index) => '<article class="history-card"><strong>' + formatDate(session.date) + '</strong><time>' + (session.duration ? escapeHtml(session.duration) + ' 分钟' : '时长未填') + '</time><div class="history-stats">' + session.exercises.length + ' 个动作 · ' + (session.volume ? session.volume.toLocaleString() + ' kg' : '容量未填') + '</div><p>' + (session.notes ? escapeHtml(session.notes) : '已完成训练记录') + '</p><div class="history-card-actions"><button type="button" class="history-del-btn" data-delete-index="' + index + '">删除</button><button type="button" class="history-share-btn" data-share-index="' + index + '">📤 分享此条给教练</button></div></article>').join('') : '<div class="history-empty">完成并保存一次训练后，真实记录会显示在这里。</div>';
         $('historyList').querySelectorAll('[data-share-index]').forEach(btn => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.dataset.shareIndex);
             currentShareMode = 'session';
             openShareModal(state.sessions[idx], idx);
+          });
+        });
+        $('historyList').querySelectorAll('[data-delete-index]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const idx = Number(btn.dataset.deleteIndex);
+            const target = state.sessions[idx];
+            if (!target) return;
+            if (!window.confirm('删除 ' + formatDate(target.date) + ' 这条训练记录？删除后无法恢复，20 次进度也会相应减少。')) return;
+            state.sessions.splice(idx, 1);
+            saveState();
+            render();
+            showToast('已删除该条记录');
           });
         });
       }
@@ -440,12 +654,46 @@
       }
       function renderDraftStatus() {
         const node = $('draftStatus');
+        const btn = $('openDraftModal');
         if (!node) return;
-        if (!draftHasContent()) { node.textContent = '草稿会自动存在本机'; node.classList.remove('active'); return; }
+        if (!draftHasContent()) {
+          node.textContent = '草稿会自动存在本机';
+          if (btn) btn.classList.remove('active');
+          return;
+        }
         const detail = draftSummaryText();
-        node.textContent = '✓ 草稿已自动保存' + (detail ? ' · ' + detail : '');
-        node.classList.add('active');
+        node.textContent = '✓ 草稿已保存' + (detail ? ' · ' + detail : '');
+        if (btn) btn.classList.add('active');
       }
+      function openDraftModal() {
+        const dateVal = state.current.date ? formatDate(state.current.date) : '今日';
+        const count = (state.current.exercises || []).length;
+        const sets = completedSets();
+        const vol = totalVolume();
+        if ($('draftModalDate')) $('draftModalDate').textContent = dateVal;
+        if ($('draftModalExercises')) $('draftModalExercises').textContent = count ? count + ' 个动作' : '尚未添加动作';
+        if ($('draftModalSets')) $('draftModalSets').textContent = sets + ' 组完成';
+        if ($('draftModalVolume')) $('draftModalVolume').textContent = vol ? vol.toLocaleString() + ' kg' : '0 kg';
+        if ($('draftModal')) $('draftModal').showModal();
+      }
+      $('openDraftModal')?.addEventListener('click', openDraftModal);
+      $('closeDraftModal')?.addEventListener('click', () => $('draftModal')?.close());
+      $('continueDraftBtn')?.addEventListener('click', () => {
+        $('draftModal')?.close();
+        $('exerciseList')?.scrollIntoView({ behavior:'smooth', block:'start' });
+      });
+      $('clearDraftInModalBtn')?.addEventListener('click', () => {
+        $('draftModal')?.close();
+        clearDraft();
+      });
+      $('draftModal')?.addEventListener('click', event => {
+        if (event.target === $('draftModal')) {
+          const box = $('draftModal').getBoundingClientRect();
+          if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) {
+            $('draftModal').close();
+          }
+        }
+      });
       function clearDraft() {
         if (!draftHasContent()) { showToast('当前没有草稿内容'); return; }
         if (!window.confirm('确定清空本次未保存的草稿吗？已经保存过的训练记录不受影响。')) return;
@@ -455,8 +703,63 @@
         render();
         showToast('草稿已清空，可以重新开始');
       }
-      function showToast(message) { $('toast').textContent = message; $('toast').classList.add('show'); clearTimeout(window.toastTimer); window.toastTimer = setTimeout(() => $('toast').classList.remove('show'), 2600); }
-      function finishWorkout() { syncMeta(); const validExercises = state.current.exercises.filter(exercise => exercise.name.trim() || exercise.sets.some(set => set.weight || set.reps)); if (!validExercises.length) { showToast('先添加至少一个真实动作'); return; } if (validExercises.some(exercise => !exercise.name.trim())) { showToast('请给每个动作填写名称'); return; } const savedSession = { date:state.current.date, duration:state.current.duration, calories:state.current.calories, notes:state.current.notes, volume:totalVolume(), completedSets:completedSets(), exercises:validExercises.map(exercise => ({ ...exercise, name:exercise.name, sets:exercise.sets.map(set => ({...set})) })), aiSummary:state.aiSummary }; state.sessions.unshift(savedSession); state.current = blankState().current; state.aiSummary = ''; saveState(); render(); showToast('本次训练已保存！点击顶部【分享给教练】'); }
+      function finishWorkout() {
+        syncMeta();
+        const validExercises = state.current.exercises.filter(exercise => exercise.name.trim() || exercise.sets.some(set => set.weight || set.reps));
+        if (!validExercises.length) { showToast('先添加至少一个真实动作'); return; }
+        if (validExercises.some(exercise => !exercise.name.trim())) { showToast('请给每个动作填写名称'); return; }
+        const savedSession = {
+          date: state.current.date,
+          duration: state.current.duration,
+          calories: state.current.calories,
+          notes: state.current.notes,
+          volume: totalVolume(),
+          completedSets: completedSets(),
+          exercises: validExercises.map(exercise => ({
+            ...exercise,
+            name: exercise.name,
+            tips: (exercise.tips || '').trim(),
+            sets: exercise.sets.map(set => ({...set}))
+          })),
+          aiSummary: state.aiSummary
+        };
+        state.sessions.unshift(savedSession);
+
+        // 同步沉淀至动作宝典 (最新覆盖)
+        const vault = loadVault();
+        let syncedCount = 0;
+        validExercises.forEach(exercise => {
+          const rawName = (exercise.name || '').trim();
+          if (!rawName) return;
+          const key = cleanName(rawName);
+          const tips = (exercise.tips || '').trim();
+          if (!vault[key]) {
+            vault[key] = {
+              name: rawName,
+              tips: tips,
+              updatedAt: state.current.date || localDateStr(),
+              catalogId: exercise.catalogId || '',
+              muscleGroup: exercise.muscleGroup || ''
+            };
+            if (tips) syncedCount++;
+          } else {
+            if (tips) {
+              vault[key].tips = tips;
+              vault[key].updatedAt = state.current.date || localDateStr();
+              syncedCount++;
+            }
+            if (exercise.catalogId) vault[key].catalogId = exercise.catalogId;
+            if (exercise.muscleGroup) vault[key].muscleGroup = exercise.muscleGroup;
+          }
+        });
+        saveVault(vault);
+
+        state.current = blankState().current;
+        state.aiSummary = '';
+        saveState();
+        render();
+        showToast(syncedCount ? '训练已保存！已同步 ' + syncedCount + ' 条教学要领至动作宝典' : '本次训练已保存！点击顶部【分享给教练】');
+      }
       function summarySource() { if (state.current.exercises.length) return { ...state.current, volume:totalVolume(), completedSets:completedSets() }; return state.sessions[0] || null; }
       async function generateSummary() { syncMeta(); syncAiConfig(); const source = summarySource(); if (!source || !source.exercises?.length) { showToast('先添加真实训练内容'); return; } const config = activeAiConfig(); const key = $('aiKey').value.trim(); if (!config.endpoint) { showToast('请先填写接口地址'); return; } if (aiConfig.mode === 'remote' && !key) { showToast('请先配置 API Key'); document.querySelector('.ai-settings').open = true; $('aiKey').focus(); return; } const button = $('generateSummary'); button.disabled = true; button.textContent = '生成中…'; $('aiOutput').hidden = false; $('aiContent').textContent = '正在根据你的真实记录整理…'; const prompt = '请根据以下真实力量训练记录，生成一份简洁、客观、中文的训练总结。不要编造未提供的动作、重量、次数或身体感受；缺少的数据就明确写“未记录”。用四段输出：1. 本次训练概览；2. 完成情况；3. 值得保持；4. 下一次可关注。不要做医疗诊断，不要擅自安排完整训练计划。\n\n训练记录：' + JSON.stringify(source); try { const response = await fetch(config.endpoint, { method:'POST', headers:{'Content-Type':'application/json', ...(aiConfig.mode === 'remote' && key ? {Authorization:'Bearer ' + key} : {})}, body:JSON.stringify({model:config.model || (aiConfig.mode === 'local' ? 'deepseek-r1:7b' : 'deepseek-v4-flash'), messages:[{role:'system',content:'你是一个谨慎的训练日志分析助手，只总结用户提供的数据。'},{role:'user',content:prompt}], temperature:0.3}) }); const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || '模型服务返回错误'); const content = data.choices?.[0]?.message?.content || data.choices?.[0]?.text; if (!content) throw new Error('没有收到有效的总结内容'); state.aiSummary = content; saveState(); renderAi(); showToast('训练总结已生成'); } catch (error) { $('aiContent').textContent = '生成失败：' + error.message + '\n\n本地模式请确认 Ollama 正在运行，并允许当前网页访问本地服务。云端模式请检查 API Key、接口地址和账户余额。'; showToast('AI 总结生成失败'); } finally { button.disabled = false; button.textContent = '生成总结'; } }
       async function testLocal() { const button = $('testLocal'); syncAiConfig(); const modelsEndpoint = activeAiConfig().endpoint.replace(/\/chat\/completions\/?$/, '/models'); button.disabled = true; button.textContent = '检测中…'; try { const response = await fetch(modelsEndpoint); if (!response.ok) throw new Error('本地服务返回 ' + response.status); const data = await response.json(); const names = (data.data || []).map(model => model.id).filter(Boolean); showToast(names.length ? '本地服务已连接：' + names[0] : '本地服务已连接'); } catch (error) { showToast('未连接：请启动 Ollama，并检查跨域设置'); } finally { button.disabled = false; button.textContent = '检测本地服务'; } }
@@ -609,7 +912,7 @@
           goal: 20,
           total: totalCount,
           cumVol: cumVol,
-          date: session.date || new Date().toISOString().slice(0, 10),
+          date: session.date || localDateStr(),
           dur: session.duration || '',
           cal: session.calories || '',
           vol: vol,
@@ -617,6 +920,7 @@
           ai: session.aiSummary || (session === state.current ? state.aiSummary : '') || '',
           ex: (session.exercises || []).map(e => ({
             n: e.name || '',
+            tips: e.tips || '',
             s: (e.sets || []).map(s => ({
               w: s.weight || '',
               r: s.reps || '',
@@ -725,6 +1029,9 @@
           payload.ex.forEach((ex, idx) => {
             const exVol = (ex.s || []).reduce((sum, s) => sum + ((Number(s.w) || 0) * (Number(s.r) || 0)), 0);
             t += (idx + 1) + '. ' + (ex.n || '未命名动作') + (exVol ? '（容量 ' + exVol.toLocaleString() + 'kg）' : '') + '\n';
+            if (ex.tips) {
+              t += '   💡 要领：' + ex.tips + '\n';
+            }
             (ex.s || []).forEach((set, sIdx) => {
               t += '   · 第 ' + (sIdx + 1) + ' 组：' + (set.w || '—') + 'kg × ' + (set.r || '—') + '次 ' + (set.d ? '✓' : '') + '\n';
             });
@@ -1028,7 +1335,7 @@
 
         container.innerHTML = '<section class="viewer-card"><div class="viewer-card-head"><h2>学员训练打卡报告</h2><span style="color:var(--green); font-weight:800; font-size:14px;">第 ' + (payload.index || 1) + ' / ' + (payload.goal || 20) + ' 次打卡</span></div>' + cumBanner + '<div class="viewer-meta-grid"><div class="viewer-meta-item"><div class="viewer-meta-label">训练日期</div><div class="viewer-meta-val">' + formatDate(payload.date) + '</div></div><div class="viewer-meta-item"><div class="viewer-meta-label">训练时长</div><div class="viewer-meta-val">' + (payload.dur ? escapeHtml(payload.dur) + ' 分' : '—') + '</div></div><div class="viewer-meta-item"><div class="viewer-meta-label">热量消耗</div><div class="viewer-meta-val">' + (payload.cal ? escapeHtml(payload.cal) + ' kcal' : '—') + '</div></div><div class="viewer-meta-item"><div class="viewer-meta-label">本次总容量</div><div class="viewer-meta-val green">' + (payload.vol ? payload.vol.toLocaleString() + ' kg' : '—') + '</div></div></div></section><section class="viewer-card"><div class="viewer-card-head"><h3>动作明细 (' + exercises.length + ' 个动作 · 完成 ' + completedSetsCount + '/' + totalSetsCount + ' 组)</h3></div><div>' + (exercises.map((ex, exIdx) => {
           const exVol = (ex.s || []).reduce((sum, s) => sum + ((Number(s.w) || 0) * (Number(s.r) || 0)), 0);
-          return '<div class="viewer-exercise-item"><div class="viewer-ex-head"><div class="viewer-ex-title"><span class="viewer-ex-badge">' + String(exIdx + 1).padStart(2, '0') + '</span><span>' + escapeHtml(ex.n || '未命名动作') + '</span></div><span class="viewer-ex-vol">' + (exVol ? '容量 ' + exVol.toLocaleString() + ' kg' : '') + '</span></div><div class="set-header"><span>组</span><span>重量（kg）</span><span></span><span>次数</span><span style="text-align:center;">状态</span></div><div class="viewer-sets-grid">' + (ex.s || []).map((s, sIdx) => '<div class="viewer-set-row ' + (s.d ? 'done' : '') + '"><span class="set-number">' + (sIdx + 1) + '</span><span style="font-weight:750;">' + (s.w ? escapeHtml(s.w) + ' kg' : '—') + '</span><span class="times">×</span><span style="font-weight:750;">' + (s.r ? escapeHtml(s.r) + ' 次' : '—') + '</span><span class="viewer-check-badge">' + (s.d ? '✓' : '○') + '</span></div>').join('') + '</div></div>';
+          return '<div class="viewer-exercise-item"><div class="viewer-ex-head"><div class="viewer-ex-title"><span class="viewer-ex-badge">' + String(exIdx + 1).padStart(2, '0') + '</span><span>' + escapeHtml(ex.n || '未命名动作') + '</span></div><span class="viewer-ex-vol">' + (exVol ? '容量 ' + exVol.toLocaleString() + ' kg' : '') + '</span></div>' + (ex.tips ? '<div style="margin:4px 0 10px; padding:6px 10px; border-radius:8px; background:#18251c; border:1px solid #2d4c36; font-size:12px; color:#c7e3cb; line-height:1.5;">💡 <strong>动作要领：</strong>' + escapeHtml(ex.tips) + '</div>' : '') + '<div class="set-header"><span>组</span><span>重量（kg）</span><span></span><span>次数</span><span style="text-align:center;">状态</span></div><div class="viewer-sets-grid">' + (ex.s || []).map((s, sIdx) => '<div class="viewer-set-row ' + (s.d ? 'done' : '') + '"><span class="set-number">' + (sIdx + 1) + '</span><span style="font-weight:750;">' + (s.w ? escapeHtml(s.w) + ' kg' : '—') + '</span><span class="times">×</span><span style="font-weight:750;">' + (s.r ? escapeHtml(s.r) + ' 次' : '—') + '</span><span class="viewer-check-badge">' + (s.d ? '✓' : '○') + '</span></div>').join('') + '</div></div>';
         }).join('') || '<div class="empty"><p>未填写动作记录</p></div>') + '</div></section>' + (payload.notes ? '<section class="viewer-card"><div class="viewer-card-head"><h3>学员训练心得 / 备注</h3></div><p style="margin:0; font-size:14px; line-height:1.6; color:#e0e0e3;">' + escapeHtml(payload.notes) + '</p></section>' : '') + (payload.ai ? '<section class="ai-card" style="margin-bottom:20px;"><div class="ai-kicker">AI 训练分析</div><div class="ai-content" style="margin-top:6px;">' + escapeHtml(payload.ai) + '</div></section>' : '') + '<section class="viewer-coach-card"><div style="font-size:15px; font-weight:850; color:var(--green); margin-bottom:4px;">💬 教练快速反馈模版</div><div style="font-size:13px; color:var(--muted);">可直接复制发给学员，鼓励学员保持训练习惯：</div><div class="viewer-reply-box" id="coachReplyText">' + escapeHtml(feedbackTemplate) + '</div><button type="button" class="copy-coach-reply-btn" id="copyCoachReplyBtn">📋 一键复制教练评语发给学员</button></section><div class="viewer-actions"><button type="button" class="viewer-btn viewer-btn-primary" id="viewerCopyReportBtn">📋 复制本次打卡文字</button><button type="button" class="viewer-btn viewer-btn-secondary" id="viewerBackBtn">返回我的打卡</button></div>';
 
         $('copyCoachReplyBtn')?.addEventListener('click', async () => {
@@ -1119,6 +1426,15 @@
     <script src="workout-extras.js?v=20260915_dark"></script>
     <script>
       if ('serviceWorker' in navigator) {
+        // 首次访问时 controller 是空的（这一次装完不用刷新）；之后换成新版才自动刷新一次，
+        // 把「要手动刷好几遍」变成「打开就是最新」。
+        const hadController = Boolean(navigator.serviceWorker.controller);
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!hadController || refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('./sw.js').then(reg => {
             reg.onupdatefound = () => {
@@ -1131,6 +1447,10 @@
                 };
               }
             };
+            // 从后台切回前台时主动查一次更新，不用等浏览器自己的检查节奏
+            document.addEventListener('visibilitychange', () => {
+              if (document.visibilityState === 'visible') reg.update().catch(() => {});
+            });
           }).catch(err => console.log('SW register error:', err));
         });
       }

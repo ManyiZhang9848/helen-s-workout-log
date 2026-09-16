@@ -111,8 +111,12 @@
     $('libraryList').querySelectorAll('img').forEach(img=>{img.onerror=()=>{img.style.opacity='0.25';};});
     $('libraryList').querySelectorAll('[data-library-add]').forEach(button=>button.onclick=()=>{
       const ex=catalog.find(item=>item.id===button.dataset.libraryAdd);if(!ex)return;
-      const item={...app().blankExercise(),name:ex.zh,catalogId:ex.id,muscleGroup:ex.group||muscleGroups[ex.target]||''};
-      app().getState().current.exercises.push(item);saveState();library.close();render();showToast('已添加 '+ex.zh);
+      const vault = app().loadVault ? app().loadVault() : {};
+      const key = clean(ex.zh);
+      const prevTips = vault[key]?.tips || '';
+      const item={...app().blankExercise(),name:ex.zh,catalogId:ex.id,muscleGroup:ex.group||muscleGroups[ex.target]||'',tips:prevTips};
+      app().getState().current.exercises.push(item);saveState();library.close();render();
+      showToast(prevTips ? '已添加 ' + ex.zh + '，已自动带出教学要领' : '已添加 ' + ex.zh);
       const cards=document.querySelectorAll('[data-exercise]');cards[cards.length-1]?.scrollIntoView({block:'center',behavior:'smooth'});
     });
     const loadBtn = $('loadMoreExercises');
@@ -286,5 +290,255 @@
     if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:'我的训练打卡'});}catch(error){if(error.name!=='AbortError')showToast('请点击保存图片，或长按图片保存');}}
     else{$('downloadPoster').click();showToast('图片已准备下载，可保存后发给教练');}
   };
+
+  // ================= 动作宝典 (教学知识库) 弹窗控制器 =================
+  const vaultModal = $('vaultModal');
+  const openVaultBtn = $('openVaultBtn');
+  const closeVaultBtn = $('closeVault');
+  const vaultSearch = $('vaultSearch');
+  const vaultPills = $('vaultPills');
+  const vaultList = $('vaultList');
+
+  let currentVaultGroup = '';
+
+  function openVault() {
+    if (vaultSearch) vaultSearch.value = '';
+    currentVaultGroup = '';
+    if (vaultPills) {
+      vaultPills.querySelectorAll('.vault-pill').forEach(b => b.classList.toggle('active', b.dataset.vaultGroup === ''));
+    }
+    renderVaultList();
+    if (vaultModal) vaultModal.showModal();
+  }
+
+  if (openVaultBtn) openVaultBtn.onclick = openVault;
+  if (closeVaultBtn) closeVaultBtn.onclick = () => vaultModal && vaultModal.close();
+  if (vaultModal) {
+    vaultModal.addEventListener('click', event => {
+      if (event.target === vaultModal) {
+        const box = vaultModal.getBoundingClientRect();
+        if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) {
+          vaultModal.close();
+        }
+      }
+    });
+  }
+
+  if (vaultSearch) {
+    vaultSearch.addEventListener('input', () => renderVaultList());
+  }
+
+  if (vaultPills) {
+    vaultPills.querySelectorAll('.vault-pill').forEach(btn => {
+      btn.addEventListener('click', () => {
+        vaultPills.querySelectorAll('.vault-pill').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentVaultGroup = btn.dataset.vaultGroup || '';
+        renderVaultList();
+      });
+    });
+  }
+
+  function renderVaultList() {
+    if (!vaultList) return;
+    const vault = app().loadVault ? app().loadVault() : {};
+    const query = clean(vaultSearch?.value || '');
+    const sessions = app().getState()?.sessions || [];
+
+    // 计算各动作 PR
+    const prMap = {};
+    sessions.forEach(s => {
+      (s.exercises || []).forEach(ex => {
+        const rawName = (ex.name || '').trim();
+        if (!rawName) return;
+        const key = clean(rawName);
+        if (!prMap[key]) prMap[key] = { maxW: 0, reps: 0, sets: 0, lastDate: s.date || '' };
+        (ex.sets || []).forEach(set => {
+          const w = parseFloat(set.weight) || 0;
+          const r = parseInt(set.reps, 10) || 0;
+          if (w > 0 || r > 0) {
+            prMap[key].sets += 1;
+            if (w > prMap[key].maxW) {
+              prMap[key].maxW = w;
+              prMap[key].reps = r;
+            } else if (w === prMap[key].maxW && r > prMap[key].reps) {
+              prMap[key].reps = r;
+            }
+          }
+        });
+      });
+    });
+
+    let items = Object.entries(vault).map(([key, item]) => {
+      const match = matchExercise({ name: item.name, catalogId: item.catalogId });
+      let groupKey = item.muscleGroup || (match ? (match.group || muscleGroups[match.target] || '') : '');
+      const equipKey = match ? (match.equipment || '') : '';
+      const pr = prMap[key] || null;
+      return {
+        key,
+        name: item.name,
+        enName: match?.name || '',
+        tips: item.tips || '',
+        updatedAt: item.updatedAt || (pr?.lastDate || ''),
+        match,
+        groupKey,
+        groupLabel: groups[groupKey] || '力量动作',
+        equipLabel: equipment[equipKey] || equipKey || '自由重量',
+        pr: pr && pr.maxW > 0 ? pr : null
+      };
+    });
+
+    const totalCount = items.length;
+    const hasTipsCount = items.filter(i => i.tips && i.tips.trim()).length;
+    if ($('vaultCountSub')) {
+      $('vaultCountSub').textContent = '已沉淀 ' + hasTipsCount + ' 个动作教学要领 · 练习过 ' + totalCount + ' 个动作';
+    }
+
+    // 过滤
+    items = items.filter(item => {
+      if (currentVaultGroup) {
+        if (currentVaultGroup === 'arms') {
+          if (item.groupKey !== 'biceps' && item.groupKey !== 'triceps' && item.groupKey !== 'arms') return false;
+        } else if (item.groupKey !== currentVaultGroup) {
+          return false;
+        }
+      }
+      if (query) {
+        const text = clean(item.name + ' ' + item.enName + ' ' + item.tips + ' ' + item.groupLabel + ' ' + item.equipLabel);
+        if (!text.includes(query)) return false;
+      }
+      return true;
+    });
+
+    // 排序：有 tips 的排在前面，按 updatedAt 降序
+    items.sort((a, b) => {
+      const hasTipA = Boolean(a.tips && a.tips.trim());
+      const hasTipB = Boolean(b.tips && b.tips.trim());
+      if (hasTipA !== hasTipB) return hasTipB ? 1 : -1;
+      return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+    });
+
+    if (!items.length) {
+      if (totalCount === 0) {
+        vaultList.innerHTML = '<div class="vault-empty"><div class="vault-empty-icon">📖</div><strong>还没有沉淀动作教学要领</strong><p style="margin:8px 0 0;">在训练中添加动作并在下方写下教练口诀，<br>保存训练后就会自动在这里生成你的专属动作宝典！</p></div>';
+      } else {
+        vaultList.innerHTML = '<div class="vault-empty"><p>没有找到符合条件的动作教学要领。</p></div>';
+      }
+      return;
+    }
+
+    vaultList.innerHTML = items.map(item => {
+      const match = item.match;
+      const thumb = match?.img ? CDN_BASE + match.img : (match?.gif ? CDN_BASE + match.gif : '');
+      const gif = match?.gif ? CDN_BASE + match.gif : '';
+      const hasTips = Boolean(item.tips && item.tips.trim());
+
+      const mediaHtml = thumb ? (
+        '<div class="vault-media-wrap" data-gif="' + gif + '" data-thumb="' + thumb + '" title="点击播放/暂停示范">' +
+          '<img src="' + thumb + '" alt="' + escapeHtml(item.name) + ' 3D示范" loading="lazy" decoding="async" referrerpolicy="no-referrer">' +
+          (gif ? '<span class="vault-gif-tag">▶ 动图</span>' : '') +
+        '</div>'
+      ) : (
+        '<div class="vault-media-wrap" style="background:#22252a; display:grid; place-items:center; color:var(--green); font-size:22px; font-weight:900;">🏋️</div>'
+      );
+
+      return '<article class="vault-card" data-vault-key="' + escapeHtml(item.key) + '">' +
+        '<div class="vault-card-top">' +
+          mediaHtml +
+          '<div class="vault-card-info">' +
+            '<div class="vault-card-meta">' +
+              '<span class="vault-group-badge">' + escapeHtml(item.groupLabel) + '</span>' +
+              '<span class="vault-equip-badge">' + escapeHtml(item.equipLabel) + '</span>' +
+            '</div>' +
+            '<strong class="vault-card-title">' + escapeHtml(item.name) + '</strong>' +
+            (item.enName ? '<span class="vault-card-en">' + escapeHtml(item.enName) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="vault-tip-box">' +
+          '<div class="vault-tip-head">' +
+            '<span>💡 教学要领 &amp; 口诀</span>' +
+            '<button type="button" class="vault-edit-btn" data-action="edit-tip">✏️ 编辑</button>' +
+          '</div>' +
+          '<div class="vault-tip-content ' + (hasTips ? '' : 'empty') + '">' +
+            (hasTips ? escapeHtml(item.tips) : '尚未记录口诀，在下次训练时填写会自动沉淀在此') +
+          '</div>' +
+          '<div class="vault-tip-edit-area" hidden>' +
+            '<textarea class="vault-edit-textarea" rows="3" maxlength="300" placeholder="如：座椅高度齐胸；下拉先沉肩，手肘往裤兜带；避免耸肩借力...">' + escapeHtml(item.tips || '') + '</textarea>' +
+            '<div class="vault-edit-actions">' +
+              '<button type="button" class="vault-cancel-btn">取消</button>' +
+              '<button type="button" class="vault-save-btn">保存修改</button>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="vault-card-footer">' +
+          '<span>' + (item.pr ? '🏆 最佳 <strong>' + item.pr.maxW + 'kg</strong> × ' + item.pr.reps + '次' : '记录已同步') + '</span>' +
+          '<span>' + (item.updatedAt ? '更新于 ' + item.updatedAt : '') + '</span>' +
+        '</div>' +
+      '</article>';
+    }).join('');
+
+    // 事件绑定：动图切换
+    vaultList.querySelectorAll('.vault-media-wrap[data-gif]').forEach(wrap => {
+      wrap.onclick = () => {
+        const gif = wrap.dataset.gif;
+        const thumb = wrap.dataset.thumb;
+        const img = wrap.querySelector('img');
+        const tag = wrap.querySelector('.vault-gif-tag');
+        if (!gif || !img) return;
+        if (img.src === gif) {
+          img.src = thumb;
+          if (tag) { tag.textContent = '▶ 动图'; tag.style.background = 'rgba(0,0,0,.7)'; }
+        } else {
+          img.src = gif;
+          if (tag) { tag.textContent = '■ 播放中'; tag.style.background = 'var(--green)'; tag.style.color = '#102015'; }
+        }
+      };
+    });
+
+    // 事件绑定：编辑与保存口诀
+    vaultList.querySelectorAll('.vault-card').forEach(card => {
+      const key = card.dataset.vaultKey;
+      const editBtn = card.querySelector('[data-action="edit-tip"]');
+      const contentEl = card.querySelector('.vault-tip-content');
+      const editArea = card.querySelector('.vault-tip-edit-area');
+      const textarea = card.querySelector('.vault-edit-textarea');
+      const cancelBtn = card.querySelector('.vault-cancel-btn');
+      const saveBtn = card.querySelector('.vault-save-btn');
+
+      if (!editBtn || !editArea) return;
+
+      editBtn.onclick = () => {
+        contentEl.hidden = true;
+        editArea.hidden = false;
+        editBtn.hidden = true;
+        textarea.focus();
+      };
+
+      cancelBtn.onclick = () => {
+        contentEl.hidden = false;
+        editArea.hidden = true;
+        editBtn.hidden = false;
+        textarea.value = vault[key]?.tips || '';
+      };
+
+      saveBtn.onclick = () => {
+        const newTips = textarea.value.trim();
+        const d = new Date();
+        const todayStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        if (!vault[key]) {
+          vault[key] = { name: card.querySelector('.vault-card-title')?.textContent || key, tips: newTips, updatedAt: todayStr };
+        } else {
+          vault[key].tips = newTips;
+          vault[key].updatedAt = todayStr;
+        }
+        app().saveVault(vault);
+        showToast('已更新「' + vault[key].name + '」教学要领');
+        renderVaultList();
+      };
+    });
+  }
+
+  window.renderVaultList = renderVaultList;
+
   render();
 })();

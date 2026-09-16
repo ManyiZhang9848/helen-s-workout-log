@@ -49,3 +49,76 @@
 .report-day-volume,.report-day-count { font-size:12px !important; white-space:normal; overflow-wrap:anywhere; }
 .extra-dialog :focus-visible { outline:2px solid var(--green); outline-offset:3px; }
 @media(max-width:420px) { .library-list { gap:8px; padding:0 10px 12px; } .library-item { padding:9px; } .extra-header { padding:14px; } .library-item strong { font-size:15px; } }
+
+/* 动作宝典 (教学知识库) 样式 */
+.vault-trigger-btn { border:1px solid #3c5442; border-radius:999px; padding:7px 12px; background:#1b241e; color:var(--green); font-size:13px; font-weight:850; display:inline-flex; align-items:center; gap:5px; transition:all .2s; }
+.vault-trigger-btn:hover { background:rgba(88,189,112,.2); border-color:var(--green); }
+.vault-badge { background:var(--green); color:#102015; border-radius:999px; padding:1px 6px; font-size:11px; font-weight:900; }
+@media(max-width:560px) { .vault-trigger-btn { padding:6px 9px; font-size:12px; } }
+
+/* 动作卡片教学要领输入框 */
+.exercise-tips-wrap { margin-top:12px; padding:10px 12px; background:#18181b; border:1px solid #36363b; border-radius:14px; }
+.exercise-tips-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.exercise-tips-title { font-size:12px; font-weight:850; color:var(--green); display:flex; align-items:center; gap:4px; }
+.exercise-tips-hint { font-size:11px; color:#787880; }
+.exercise-tips-input { width:100%; min-height:48px; resize:vertical; font-size:13px; line-height:1.55; color:#f0f0f2; background:transparent; border:0; outline:0; padding:0; font-family:inherit; }
+.exercise-tips-input::placeholder { color:#68686e; font-size:12px; }
+
+/* 宝典弹窗 */
+.vault-dialog { width:min(760px,calc(100% - 20px)); }
+.vault-controls { padding:14px 16px 12px; display:grid; gap:10px; border-bottom:1px solid var(--line); background:#161619; }
+.vault-search-box input { width:100%; padding:11px 14px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-size:14px; color:var(--text); }
+.vault-search-box input:focus { border-color:var(--green); }
+.vault-pills { display:flex; gap:6px; overflow-x:auto; padding-bottom:2px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+.vault-pills::-webkit-scrollbar { display:none; }
+.vault-pill { flex:0 0 auto; border:1px solid var(--line); border-radius:999px; padding:6px 13px; background:var(--panel); color:var(--muted); font-size:12px; font-weight:750; cursor:pointer; transition:all .15s; min-height:34px !important; }
+.vault-pill.active { border-color:var(--green); background:var(--green-dark); color:var(--green); }
+
+.vault-list { padding:16px; display:grid; gap:14px; max-height:calc(92dvh - 170px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.vault-card { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:15px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 14px rgba(0,0,0,.2); }
+.vault-card-top { display:grid; grid-template-columns:56px 1fr; gap:12px; align-items:center; }
+.vault-media-wrap { width:56px; height:56px; border-radius:12px; background:#fff; overflow:hidden; position:relative; cursor:pointer; flex-shrink:0; }
+.vault-media-wrap img { width:100%; height:100%; object-fit:contain; }
+.vault-media-wrap .vault-gif-tag { position:absolute; right:3px; bottom:3px; font-size:9px; font-weight:800; background:rgba(0,0,0,.7); color:var(--green); padding:1px 4px; border-radius:4px; }
+.vault-card-info { min-width:0; }
+.vault-card-meta { display:flex; gap:6px; margin-bottom:4px; }
+.vault-group-badge { font-size:11px; padding:2px 7px; border-radius:6px; background:#1b2a20; color:var(--green); font-weight:750; }
+.vault-equip-badge { font-size:11px; padding:2px 7px; border-radius:6px; background:#29292e; color:var(--muted); }
+.vault-card-title { font-size:16px; font-weight:850; color:#f5f5f2; display:block; overflow-wrap:anywhere; }
+.vault-card-en { font-size:11px; color:#85858b; display:block; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.vault-tip-box { background:#16241a; border:1px solid #2e4d35; border-radius:14px; padding:12px 14px; }
+.vault-tip-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px; color:var(--green); font-weight:850; }
+.vault-edit-btn { background:transparent; border:0; color:#95c99f; font-size:12px; cursor:pointer; padding:2px 6px; border-radius:6px; min-height:auto !important; }
+.vault-edit-btn:hover { background:rgba(88,189,112,.15); color:var(--green); }
+.vault-tip-content { font-size:14px; line-height:1.6; color:#e0fae4; white-space:pre-wrap; }
+.vault-tip-content.empty { color:#7e9c84; font-style:italic; }
+
+.vault-tip-edit-area textarea { width:100%; padding:9px 11px; background:#111913; border:1px solid #3b6545; border-radius:10px; color:#f0f5f1; font-size:13px; line-height:1.5; resize:vertical; font-family:inherit; }
+.vault-tip-edit-area textarea:focus { border-color:var(--green); outline:none; }
+.vault-edit-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:8px; }
+.vault-cancel-btn { background:transparent; border:1px solid #3c4a3f; color:var(--muted); font-size:12px; padding:5px 12px; border-radius:8px; cursor:pointer; min-height:auto !important; }
+.vault-save-btn { background:var(--green); border:0; color:#122017; font-size:12px; font-weight:850; padding:6px 14px; border-radius:8px; cursor:pointer; min-height:auto !important; }
+
+.vault-card-footer { display:flex; justify-content:space-between; align-items:center; font-size:11px; color:#787880; border-top:1px solid #2e2e33; padding-top:8px; }
+.vault-card-footer strong { color:#a8d5b1; }
+.vault-empty { padding:40px 20px; text-align:center; color:var(--muted); font-size:14px; line-height:1.6; border:1px dashed #3a3a40; border-radius:16px; margin:10px 0; }
+.vault-empty-icon { font-size:36px; margin-bottom:10px; }
+
+/* 草稿入口胶囊与弹窗 */
+.draft-pill-btn { border:1px solid #36363b; border-radius:999px; padding:6px 12px; background:#1b1b1e; color:var(--muted); font-size:12px; font-weight:750; display:inline-flex; align-items:center; gap:6px; cursor:pointer; transition:all .2s; min-height:34px !important; }
+.draft-pill-btn:hover { background:rgba(88,189,112,.15); border-color:var(--green); color:var(--text); }
+.draft-pill-btn.active { border-color:#3c6646; background:#18281d; color:var(--green); }
+.draft-dot { width:7px; height:7px; border-radius:50%; background:#68686e; display:inline-block; flex-shrink:0; }
+.draft-pill-btn.active .draft-dot { background:var(--green); box-shadow:0 0 6px var(--green); }
+@media(max-width:560px) { .draft-pill-btn { padding:5px 9px; font-size:11px; } }
+
+.draft-modal { width:min(520px,calc(100% - 24px)); }
+.draft-stats-card { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+.draft-stat-item { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 14px; }
+.draft-stat-k { font-size:12px; color:var(--muted); display:block; margin-bottom:4px; }
+.draft-stat-v { font-size:16px; font-weight:850; color:var(--text); }
+.draft-stat-v.green { color:var(--green); }
+.draft-memo-box { background:#16241a; border:1px solid #2d4c33; border-radius:14px; padding:13px 15px; }
+
+
