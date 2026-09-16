@@ -171,8 +171,8 @@
     ctx.save();
     ctx.translate(x+(width-vw*scale)/2,y+(height-vh*scale)/2);
     ctx.scale(scale,scale);ctx.translate(-vx,-vy);
-    ctx.strokeStyle='#b8bdca';ctx.lineWidth=2.4;
-    ctx.fillStyle='#fafafd';
+    ctx.strokeStyle='#687079';ctx.lineWidth=2.4;
+    ctx.fillStyle='#25282d';
     const outline = new Path2D(model.outline);
     ctx.fill(outline);ctx.stroke(outline);
     model.parts.forEach(part=>{
@@ -180,12 +180,12 @@
         // Restyle the source hair into a compact top bun; crop the ponytail.
         const cx=side==='front'?320:1142;
         ctx.save();ctx.beginPath();ctx.ellipse(cx,130,78,98,0,0,Math.PI*2);ctx.clip();
-        ctx.fillStyle='#b2b7c6';part.paths.forEach(path=>ctx.fill(new Path2D(path)));ctx.restore();
-        ctx.fillStyle='#b2b7c6';ctx.beginPath();ctx.ellipse(cx,30,31,35,-0.12,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='#737b84';part.paths.forEach(path=>ctx.fill(new Path2D(path)));ctx.restore();
+        ctx.fillStyle='#737b84';ctx.beginPath();ctx.ellipse(cx,30,31,35,-0.12,0,Math.PI*2);ctx.fill();
         return;
       }
-      ctx.fillStyle=(mapping[part.slug]||[]).some(key=>active.has(key))?'#514596':
-        part.slug==='hair'?'#b2b7c6':part.slug==='head'?'#fafafd':'#c7cbd6';
+      ctx.fillStyle=(mapping[part.slug]||[]).some(key=>active.has(key))?'#62d47c':
+        part.slug==='head'?'#343940':'#59616b';
       part.paths.forEach(path=>ctx.fill(new Path2D(path)));
     });
     ctx.restore();
@@ -225,10 +225,10 @@
       const endX=x+(edge==='left'?60:270);
       const pointX=bx+(bw-vw*scale)/2+(px-vx)*scale;
       const pointY=by+(bh-vh*scale)/2+(py-vy)*scale;
-      ctx.strokeStyle=lit?'#c6bedf':'#ececf1';ctx.lineWidth=1.1;
+      ctx.strokeStyle=lit?'#5ea973':'#3e454b';ctx.lineWidth=1.1;
       ctx.beginPath();ctx.moveTo(pointX,pointY);
       ctx.lineTo(endX+(edge==='left'?12:-12),ty);ctx.lineTo(endX,ty);ctx.stroke();
-      ctx.textAlign=edge==='left'?'left':'right';ctx.fillStyle=lit?'#514596':'#a9adba';
+      ctx.textAlign=edge==='left'?'left':'right';ctx.fillStyle=lit?'#75df8d':'#7d858c';
       ctx.fillText(label,tx,ty);
     });
     ctx.restore();
@@ -242,40 +242,40 @@
     const rows=exercises.map(ex=>({ex,title:textLines(ex.name||'未命名动作',804,32),setRows:Math.max(1,Math.ceil((ex.sets||[]).length/3))}));
     const notes=session.notes?textLines(session.notes,804,24):[];
     canvas.height=830+rows.reduce((height,row)=>height+row.title.length*42+row.setRows*55+58,0)+(notes.length?notes.length*34+85:0)+100;
-    const gradient=ctx.createLinearGradient(0,0,960,canvas.height);gradient.addColorStop(0,'#ece8fa');gradient.addColorStop(1,'#fff0e8');ctx.fillStyle=gradient;ctx.fillRect(0,0,960,canvas.height);
-    function text(value,x,y,size=26,color='#252051',bold=false){ctx.fillStyle=color;ctx.font=(bold?'600 ':'')+size+'px '+font;ctx.fillText(String(value),x,y);}
-    function card(x,y,w,h){ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(x,y,w,h,30);ctx.fill();}
-    text(session.date?session.date+' '+new Intl.DateTimeFormat('zh-CN',{weekday:'long'}).format(new Date(session.date+'T12:00:00')):'日期未填写',42,69,25);
-    card(36,110,888,620);text($('posterName').value.trim()||'我的训练',76,169,32,'#252051',true);
-    text(posterDraft?'本次训练草稿':'已保存的训练',76,205,20,'#79768e');
+    const gradient=ctx.createLinearGradient(0,0,960,canvas.height);gradient.addColorStop(0,'#17191c');gradient.addColorStop(1,'#202a23');ctx.fillStyle=gradient;ctx.fillRect(0,0,960,canvas.height);
+    function text(value,x,y,size=26,color='#e7ebe7',bold=false){ctx.fillStyle=color;ctx.font=(bold?'600 ':'')+size+'px '+font;ctx.fillText(String(value),x,y);}
+    function card(x,y,w,h){ctx.fillStyle='#202328';ctx.beginPath();ctx.roundRect(x,y,w,h,30);ctx.fill();}
+    text(session.date?session.date+' '+new Intl.DateTimeFormat('zh-CN',{weekday:'long'}).format(new Date(session.date+'T12:00:00')):'日期未填写',42,69,25,'#d5dad6');
+    card(36,110,888,620);text($('posterName').value.trim()||'我的训练',76,169,32,'#f2f5f1',true);
+    text(posterDraft?'本次训练草稿':'已保存的训练',76,205,20,'#8f9993');
     drawLabeledBody(ctx,summary.shapes,50,235,'front');drawLabeledBody(ctx,summary.shapes,390,235,'back');
-    text('正面',192,692,20,'#8b889e');text('背面',532,692,20,'#8b889e');
+    text('正面',192,692,20,'#8f9993');text('背面',532,692,20,'#8f9993');
     const volume=exercises.reduce((sum,ex)=>sum+exerciseVolume(ex),0);
-    text(volume.toLocaleString(),755,280,32,'#30276b',true);text('总容量（kg）',755,316,20,'#8b889e');
-    text(session.duration?session.duration+' 分':'未记录',755,400,30,'#30276b',true);text('训练时长',755,437,20,'#8b889e');
-    text(session.calories?session.calories+' kcal':'未记录',755,518,26,'#30276b',true);text('热量（估算）',755,555,20,'#8b889e');
-    text(exercises.length+' 个动作',755,629,24,'#514596',true);
+    text(volume.toLocaleString(),755,280,32,'#6fe38a',true);text('总容量（kg）',755,316,20,'#8f9993');
+    text(session.duration?session.duration+' 分':'未记录',755,400,30,'#6fe38a',true);text('训练时长',755,437,20,'#8f9993');
+    text(session.calories?session.calories+' kcal':'未记录',755,518,26,'#6fe38a',true);text('热量（估算）',755,555,20,'#8f9993');
+    text(exercises.length+' 个动作',755,629,24,'#6fe38a',true);
     const muscleText=summary.labels.length?'训练部位：'+summary.labels.join('、'):'训练部位未标注';
-    text(muscleText,48,779,23,'#514596');
+    text(muscleText,48,779,23,'#75df8d');
     let y=820;
     const detailHeight=rows.reduce((height,row)=>height+row.title.length*42+row.setRows*55+58,0)+(notes.length?notes.length*34+85:0);
     card(36,y,888,detailHeight+30);y+=45;
     rows.forEach(({ex,title,setRows})=>{
-      title.forEach(line=>{text(line,76,y,32,'#252051',true);y+=42;});
+      title.forEach(line=>{text(line,76,y,32,'#f2f5f1',true);y+=42;});
       (ex.sets||[]).forEach((set,index)=>{
         const x=76+(index%3)*274,sy=y+Math.floor(index/3)*55;
-        text(index+1,x,sy,18,'#a39fb7');
+        text(index+1,x,sy,18,'#8f9993');
         const weight=set.weight!==''&&set.weight!==undefined&&set.weight!==null?set.weight+'kg × ':'';
         const value=weight+(set.reps!==''&&set.reps!==undefined?set.reps+'次':'次数未填');
         text(value,x+28,sy,23);
         if(set.done)text('✓',x+238,sy,20,'#548362');
       });
-      if(!ex.sets?.length)text('组数未记录',76,y,23,'#8b889e');
-      y+=setRows*55+16;ctx.strokeStyle='#efedf5';ctx.beginPath();ctx.moveTo(76,y);ctx.lineTo(884,y);ctx.stroke();y+=42;
+      if(!ex.sets?.length)text('组数未记录',76,y,23,'#8f9993');
+      y+=setRows*55+16;ctx.strokeStyle='#363d3b';ctx.beginPath();ctx.moveTo(76,y);ctx.lineTo(884,y);ctx.stroke();y+=42;
     });
-    if(notes.length){text('训练总结',76,y,28,'#252051',true);y+=38;notes.forEach(line=>{text(line,76,y,24,'#69657f');y+=34;});}
-    text(summary.unknown?summary.unknown+' 个动作未标注肌群 · 可在动作记录中选择部位':'着色表示动作涉及的主要肌群，不代表刺激强度',48,canvas.height-63,19,'#8b889e');
-    text('训练日志 · 我的真实打卡',48,canvas.height-28,18,'#8b889e');
+    if(notes.length){text('训练总结',76,y,28,'#f2f5f1',true);y+=38;notes.forEach(line=>{text(line,76,y,24,'#a1aaa3');y+=34;});}
+    text(summary.unknown?summary.unknown+' 个动作未标注肌群 · 可在动作记录中选择部位':'着色表示动作涉及的主要肌群，不代表刺激强度',48,canvas.height-63,19,'#7e8982');
+    text('训练日志 · 我的真实打卡',48,canvas.height-28,18,'#7e8982');
     $('posterPreview').src=canvas.toDataURL('image/png');
     $('posterNote').textContent='手机可长按图片保存，也可点击“保存图片”。肌群来自动作库或手动标注；热量沿用日志中的估算值。';
     posterBlob=null;$('sharePoster').disabled=true;$('downloadPoster').removeAttribute('href');

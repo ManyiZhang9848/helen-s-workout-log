@@ -327,7 +327,7 @@
       </div>
     </div>
 
-    <link rel="stylesheet" href="workout-extras.css" />
+    <link rel="stylesheet" href="workout-extras.css?v=20260915_dark" />
     <script src="catalog-data.js"></script>
     <script>
       const STORAGE_KEY = 'strength-workout-log-v2';
@@ -1115,8 +1115,8 @@
       if (typeof document.modelContext?.registerTool === 'function') { document.modelContext.registerTool({ name:'read_workout_log', title:'读取训练日志', description:'读取当前训练草稿和已保存的真实训练记录。', inputSchema:{type:'object',properties:{},additionalProperties:false}, annotations:{readOnlyHint:true,untrustedContentHint:true}, execute(){ return { completedCount:state.sessions.length, current:state.current, sessions:state.sessions.slice(0,10) }; } }); document.modelContext.registerTool({ name:'save_workout_session', title:'保存训练记录', description:'保存一条由用户提供的真实训练记录。不会创建预设动作或虚构数据。', inputSchema:{type:'object',properties:{date:{type:'string'},duration:{type:'string'},calories:{type:'string'},notes:{type:'string'},exercises:{type:'array'}},required:['exercises'],additionalProperties:false}, annotations:{readOnlyHint:false,untrustedContentHint:false}, execute(input){ if(!Array.isArray(input.exercises)||!input.exercises.length) throw new Error('至少需要一个真实动作'); const session={date:String(input.date||''),duration:String(input.duration||''),calories:String(input.calories||''),notes:String(input.notes||''),volume:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).reduce((a,set)=>a+(Number(set.weight)||0)*(Number(set.reps)||0),0),0),completedSets:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).filter(set=>set.done).length,0),exercises:input.exercises}; state.sessions.unshift(session); saveState(); render(); return {status:'saved',completedCount:state.sessions.length}; } }); }
       renderAiConfig(); render(); checkAndRenderViewer();
     </script>
-    <script src="female-body-data.js"></script>
-    <script src="workout-extras.js"></script>
+    <script src="female-body-data.js?v=20260915_dark"></script>
+    <script src="workout-extras.js?v=20260915_dark"></script>
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
