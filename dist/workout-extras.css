@@ -17,7 +17,7 @@
 .gif-tag.playing { background:var(--green); color:#122017; border-color:var(--green); }
 .library-item strong { font-size:16px; overflow-wrap:anywhere; }
 .library-en { color:var(--muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.library-meta { color:var(--muted); font-size:13px; line-height:1.5; }
+.library-meta { color:var(--muted); font-size:13px; line-height:1.5; word-break:keep-all; }
 .library-load-more { grid-column:1 / -1; padding:12px; background:var(--panel); border:1px solid var(--line); border-radius:12px; color:var(--text); font-size:14px; font-weight:600; cursor:pointer; }
 .library-item .extra-primary { margin-top:auto; }
 .extra-primary { background:var(--green); color:#122017 !important; border:0; padding:12px 16px; border-radius:12px; font-weight:750; font-size:16px; text-align:center; text-decoration:none; }
