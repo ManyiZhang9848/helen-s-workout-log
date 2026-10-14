@@ -5,7 +5,7 @@
 .extra-header h2 { margin:0; font-size:21px; }
 .extra-dialog button,.extra-dialog select { min-height:44px; color:var(--text); }
 .extra-close { border:0; border-radius:12px; background:var(--panel); width:44px; font-size:25px; }
-.library-controls { padding:16px; display:grid; gap:12px; }
+.library-controls { padding:16px; display:grid; grid-template-columns:minmax(0,1fr); gap:12px; }
 .library-controls input { width:100%; padding:13px; background:var(--panel); border:1px solid var(--line); border-radius:12px; font-size:16px; }
 .library-filters { display:flex; gap:10px; }
 .library-filters select { flex:1; min-width:0; padding:10px; border:1px solid var(--line); border-radius:12px; background:var(--panel); font-size:14px; }
