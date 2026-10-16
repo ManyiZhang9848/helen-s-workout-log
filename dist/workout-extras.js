@@ -32,7 +32,7 @@
   const equipmentZh = {'barbell':'杠铃','dumbbell':'哑铃','cable':'绳索','leverage machine':'器械','smith machine':'史密斯机','body weight':'自重','kettlebell':'壶铃','band':'弹力带','ez barbell':'曲杆','wheel roller':'健腹轮','trap bar':'六角杠铃','rope':'战绳/绳索','assisted':'辅助器械','medicine ball':'药球/健身球'};
   const equipmentEn = {'barbell':'Barbell','dumbbell':'Dumbbell','cable':'Cable','leverage machine':'Machine','smith machine':'Smith machine','body weight':'Body weight','kettlebell':'Kettlebell','band':'Band','ez barbell':'EZ bar','wheel roller':'Ab wheel','trap bar':'Trap bar','rope':'Rope','assisted':'Assisted','medicine ball':'Medicine ball'};
   const equipment = Object.fromEntries(Object.keys(equipmentZh).map(key => [key, I18N.term(equipmentZh[key], equipmentEn[key])]));
-  const aliases = {'高位下拉':'0150','宽握高位下拉':'0200','坐姿划船':'0198','坐姿绳索划船':'0198','杠铃卧推':'0025','杠铃深蹲':'0043','杠铃硬拉':'0032','引体向上':'0652','俯卧撑':'0651','罗马尼亚硬拉':'0085'};
+  const aliases = {'高位下拉':'0150','宽握高位下拉':'0200','坐姿划船':'0861','坐姿绳索划船':'0861','杠铃卧推':'0025','杠铃深蹲':'0043','杠铃硬拉':'0032','引体向上':'0652','俯卧撑':'0662','罗马尼亚硬拉':'0085'};
   const clean = text => String(text || '').trim().toLowerCase().replace(/\s+/g,'');
   const CDN_BASE = 'https://testingcf.jsdelivr.net/gh/hasaneyldrm/exercises-dataset@main/';
   function matchExercise(ex) {
@@ -119,7 +119,7 @@
     $('libraryList').querySelectorAll('[data-library-add]').forEach(button=>button.onclick=()=>{
       const ex=catalog.find(item=>item.id===button.dataset.libraryAdd);if(!ex)return;
       const vault = app().loadVault ? app().loadVault() : {};
-      const key = clean(ex.zh);
+      const key = app().findVaultKey(vault, ex.zh, ex.id);
       const prevTips = vault[key]?.tips || '';
       const item={...app().blankExercise(),name:ex.zh,catalogId:ex.id,muscleGroup:ex.group||muscleGroups[ex.target]||'',tips:prevTips};
       app().getState().current.exercises.push(item);saveState();library.close();render();
@@ -404,6 +404,8 @@
         updatedAt: item.updatedAt || (pr?.lastDate || ''),
         match,
         groupKey,
+        // 预设动作：还没练过、口诀也没改过
+        preset: Boolean(item.preset) && !pr,
         groupLabel: groups[groupKey] || I18N.term('力量动作','Strength'),
         equipLabel: equipment[equipKey] || equipKey || I18N.term('自由重量','Free weight'),
         pr: pr && pr.maxW > 0 ? pr : null
@@ -412,8 +414,9 @@
 
     const totalCount = items.length;
     const hasTipsCount = items.filter(i => i.tips && i.tips.trim()).length;
+    const practicedCount = items.filter(i => !i.preset).length;
     if ($('vaultCountSub')) {
-      $('vaultCountSub').textContent = L('已沉淀 ' + hasTipsCount + ' 个动作教学要领 · 练习过 ' + totalCount + ' 个动作', hasTipsCount + ' with cues · ' + totalCount + ' exercises practiced');
+      $('vaultCountSub').textContent = L('共 ' + totalCount + ' 个动作 · ' + hasTipsCount + ' 个有要领 · 练过 ' + practicedCount + ' 个', totalCount + ' exercises · ' + hasTipsCount + ' with cues · ' + practicedCount + ' practiced');
     }
 
     // 过滤
@@ -432,8 +435,9 @@
       return true;
     });
 
-    // 排序：有 tips 的排在前面，按 updatedAt 降序
+    // 排序：自己练过的排在预设前面；再按有没有要领、更新时间
     items.sort((a, b) => {
+      if (a.preset !== b.preset) return a.preset ? 1 : -1;
       const hasTipA = Boolean(a.tips && a.tips.trim());
       const hasTipB = Boolean(b.tips && b.tips.trim());
       if (hasTipA !== hasTipB) return hasTipB ? 1 : -1;
@@ -471,6 +475,7 @@
             '<div class="vault-card-meta">' +
               '<span class="vault-group-badge">' + escapeHtml(item.groupLabel) + '</span>' +
               '<span class="vault-equip-badge">' + escapeHtml(item.equipLabel) + '</span>' +
+              (item.preset ? '<span class="vault-preset-badge" title="' + L('预设要领，可以按教练的指导修改', 'Starter cues — edit them to match your coach') + '">' + L('预设', 'Starter') + '</span>' : '') +
             '</div>' +
             '<strong class="vault-card-title">' + escapeHtml(item.name) + '</strong>' +
             (item.enName ? '<span class="vault-card-en">' + escapeHtml(item.enName) + '</span>' : '') +
@@ -487,6 +492,7 @@
           '<div class="vault-tip-edit-area" hidden>' +
             '<textarea class="vault-edit-textarea" rows="3" maxlength="300" placeholder="' + L('如：座椅高度齐胸；下拉先沉肩，手肘往裤兜带；避免耸肩借力...', 'e.g. seat at chest height; shoulders down first, elbows to pockets; no shrugging...') + '">' + escapeHtml(item.tips || '') + '</textarea>' +
             '<div class="vault-edit-actions">' +
+              '<button type="button" class="vault-delete-btn">' + L('删除动作', 'Delete') + '</button>' +
               '<button type="button" class="vault-cancel-btn">' + L('取消', 'Cancel') + '</button>' +
               '<button type="button" class="vault-save-btn">' + L('保存修改', 'Save') + '</button>' +
             '</div>' +
@@ -526,6 +532,7 @@
       const textarea = card.querySelector('.vault-edit-textarea');
       const cancelBtn = card.querySelector('.vault-cancel-btn');
       const saveBtn = card.querySelector('.vault-save-btn');
+      const deleteBtn = card.querySelector('.vault-delete-btn');
 
       if (!editBtn || !editArea) return;
 
@@ -543,6 +550,15 @@
         textarea.value = vault[key]?.tips || '';
       };
 
+      deleteBtn.onclick = () => {
+        const name = vault[key]?.name || key;
+        if (!window.confirm(L('从动作宝典删除「' + name + '」？已保存的训练记录不受影响。', 'Remove "' + name + '" from your playbook? Saved sessions are not affected.'))) return;
+        delete vault[key];
+        app().saveVault(vault);
+        showToast(L('已删除「' + name + '」', 'Removed "' + name + '"'));
+        renderVaultList();
+      };
+
       saveBtn.onclick = () => {
         const newTips = textarea.value.trim();
         const d = new Date();
@@ -552,6 +568,7 @@
         } else {
           vault[key].tips = newTips;
           vault[key].updatedAt = todayStr;
+          delete vault[key].preset; // 改过的预设就是自己的口诀了
         }
         app().saveVault(vault);
         showToast(L('已更新「' + vault[key].name + '」教学要领', 'Updated cues for "' + vault[key].name + '"'));
