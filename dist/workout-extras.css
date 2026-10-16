@@ -36,16 +36,16 @@
 .poster-muscles summary { cursor:pointer; padding:8px 0; }
 #posterMuscleFields { display:grid; gap:10px; margin-top:10px; }
 #posterMuscleFields select { padding:10px; border:1px solid var(--line); border-radius:10px; background:var(--panel); }
-.poster-preview { display:block; width:calc(100% - 32px); height:auto; margin:0 16px 16px; border-radius:16px; background:#efedf8; cursor:zoom-in; }
+.poster-preview { display:block; width:calc(100% - 32px); height:auto; margin:0 16px 16px; border-radius:16px; background:#17191c; cursor:zoom-in; }
 .poster-hint { margin:-8px 16px 14px; color:var(--muted); font-size:12px; text-align:center; }
 .poster-zoom { position:fixed; inset:0; z-index:60; display:none; justify-content:center; padding:calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px)); background:rgba(0,0,0,.94); overflow:auto; -webkit-overflow-scrolling:touch; }
 .poster-zoom.show { display:flex; }
-.poster-zoom img { width:100%; max-width:540px; height:auto; align-self:flex-start; border-radius:14px; background:#efedf8; }
+.poster-zoom img { width:100%; max-width:540px; height:auto; align-self:flex-start; border-radius:14px; background:#17191c; }
 .poster-zoom-close { position:fixed; top:calc(14px + env(safe-area-inset-top, 0px)); right:calc(14px + env(safe-area-inset-right, 0px)); z-index:61; width:42px; height:42px; border:1px solid rgba(255,255,255,.28); border-radius:50%; background:rgba(255,255,255,.16); color:#fff; font-size:24px; line-height:1; backdrop-filter:blur(6px); }
 .poster-actions { display:flex; gap:10px; flex-wrap:wrap; padding:0 16px 16px; }
 .poster-actions a,.poster-actions button { flex:1; min-width:140px; }
 .poster-note { margin:0; padding:0 16px 16px; color:var(--muted); font-size:13px; line-height:1.6; }
-.poster-trigger { border:1px solid #756bb0; border-radius:12px; padding:11px 14px; color:#e3dcff; background:#2c2541; font-size:14px; font-weight:750; }
+.poster-trigger { border:1px solid #4a7553; border-radius:12px; padding:11px 14px; color:var(--green); background:rgba(88,189,112,.13); font-size:14px; font-weight:750; }
 .history-card-actions { flex-wrap:wrap; gap:8px; }
 .report-day.empty { min-height:0; padding:0; margin:0; border:0; }
 .report-day-volume,.report-day-count { font-size:12px !important; white-space:normal; overflow-wrap:anywhere; }
