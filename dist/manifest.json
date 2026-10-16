@@ -1,7 +1,7 @@
 {
-  "name": "训练日志 · 健身打卡",
+  "name": "训练日志 · 健身打卡 Workout Log",
   "short_name": "健身打卡",
-  "description": "记录真实完成的力量训练动作、组数、重量与次数",
+  "description": "记录真实完成的力量训练动作、组数、重量与次数 · Log the strength sets you actually did",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
@@ -9,6 +9,16 @@
   "background_color": "#121214",
   "theme_color": "#121214",
   "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
     {
       "src": "icon.svg",
       "sizes": "any",
