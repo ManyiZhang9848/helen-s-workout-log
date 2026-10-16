@@ -22,6 +22,8 @@
       .lang-switch { display:flex; flex:0 0 auto; padding:3px; border:1px solid var(--line); border-radius:999px; background:#18181b; }
       .lang-switch button { min-width:40px; border:0; border-radius:999px; padding:7px 9px; background:transparent; color:var(--muted); font-size:12px; font-weight:800; }
       .lang-switch button.active { background:var(--green); color:#102015; }
+      /* 线条图标：描边跟随文字颜色，和文字一起缩放 */
+      .icon { width:1.1em; height:1.1em; flex:0 0 auto; vertical-align:-.18em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
       .exercise-name-wrap { min-width:0; }
       .viewer-history-toggle, .viewer-history-head span { white-space:nowrap; }
       .brand, .topbar-actions button > span:not(.vault-badge) { white-space:nowrap; }
@@ -284,8 +286,8 @@
       <header class="topbar" data-page-node-id="YLMzrAfOXzJf5JvUMWjHsp">
         <span class="brand" data-page-node-id="m70w0vzMFVGgnHeS2CYdz2">Workout log</span>
         <div class="topbar-actions" data-page-node-id="ib7YMlRZKNUKMArdYyU6Od">
-          <button type="button" class="vault-trigger-btn" id="openVaultBtn">📖 <span data-en="Playbook">动作宝典</span> <span class="vault-badge" id="vaultBadge">0</span></button>
-          <button type="button" class="share-trigger-btn" id="openShareModal" data-page-node-id="EPLvapGyc0MPIE1b38mXbd">📤 <span data-en="Share with coach">分享给教练</span></button>
+          <button type="button" class="vault-trigger-btn" id="openVaultBtn"><i data-icon="book"></i> <span data-en="Playbook">动作宝典</span> <span class="vault-badge" id="vaultBadge">0</span></button>
+          <button type="button" class="share-trigger-btn" id="openShareModal" data-page-node-id="EPLvapGyc0MPIE1b38mXbd"><i data-icon="share"></i> <span data-en="Share with coach">分享给教练</span></button>
           <span class="goal" data-en="Goal: 20" data-page-node-id="dqYl023YJagZECdKTZHDzM">目标 20 次</span>
         </div>
       </header>
@@ -332,7 +334,7 @@
         <div class="ai-output" id="aiOutput" hidden data-page-node-id="V4w8NBCwBSxN9Sg4Iyekag"><div class="ai-status" data-en="Session summary" data-page-node-id="lSQ2YanfJLPF9h29nkAX4c">本次训练总结</div><div class="ai-content" id="aiContent" data-page-node-id="hUIs39XgriQCmZYOMgy4cF"></div></div>
       </section>
 
-      <section class="history" aria-labelledby="history-heading" data-page-node-id="nvq6d3HHOyl2VmY5zsdUeC"><div class="section-head" data-page-node-id="LvTJdazzf4EnHBE4HcwpyN"><h2 id="history-heading" data-en="Saved Sessions" data-page-node-id="eOoA9vDTPgQ52Vto9zEOMs">已保存的训练</h2><div style="display:flex;align-items:center;gap:8px;" data-page-node-id="tPQgzCATm1qkTkcEEU81SK"><button type="button" class="add-button" id="historyShareBtn" style="border-color:var(--green);font-size:12px;padding:6px 12px;" data-page-node-id="dk4s7eh0Pt9DVMEtra7UHU">📤 <span data-en="Share" style="display:inline-block; vertical-align:top;">分享打卡</span></button><span id="historyCaption" data-page-node-id="Bhu6kjJBDRVkLNrG9EHgIh">还没有记录</span></div></div><div class="history-list" id="historyList" data-page-node-id="3LwbzJZGtE8YufFA2cDXtx"></div></section>
+      <section class="history" aria-labelledby="history-heading" data-page-node-id="nvq6d3HHOyl2VmY5zsdUeC"><div class="section-head" data-page-node-id="LvTJdazzf4EnHBE4HcwpyN"><h2 id="history-heading" data-en="Saved Sessions" data-page-node-id="eOoA9vDTPgQ52Vto9zEOMs">已保存的训练</h2><div style="display:flex;align-items:center;gap:8px;" data-page-node-id="tPQgzCATm1qkTkcEEU81SK"><button type="button" class="add-button" id="historyShareBtn" style="border-color:var(--green);font-size:12px;padding:6px 12px;" data-page-node-id="dk4s7eh0Pt9DVMEtra7UHU"><i data-icon="share"></i> <span data-en="Share" style="display:inline-block; vertical-align:top;">分享打卡</span></button><span id="historyCaption" data-page-node-id="Bhu6kjJBDRVkLNrG9EHgIh">还没有记录</span></div></div><div class="history-list" id="historyList" data-page-node-id="3LwbzJZGtE8YufFA2cDXtx"></div></section>
 
       <section class="backup-card" aria-labelledby="backup-heading">
         <div class="section-head"><h2 id="backup-heading" data-en="Backup">数据备份</h2><span id="backupCaption"></span></div>
@@ -341,13 +343,13 @@
       </section>
     </main>
 
-    <div class="action-bar" id="actionBar" data-page-node-id="aoIFID2PgPBZpEjy4HVXDN"><button class="draft" id="clearDraft" data-en="Clear draft" data-page-node-id="qFNLksjCxR9fImdSErgwFy">清空草稿</button><button class="draft" id="bottomShareBtn" style="color:var(--green);border-color:#4a7553;" data-en="📤 Share with coach" data-page-node-id="tcRk2E6MB7NsE2Ewtzn4vl">📤 分享给教练</button><button class="finish" id="finishWorkout" data-en="Finish session" data-page-node-id="3EB788NUc8x0cwgD1QNkpQ">完成本次训练</button></div>
+    <div class="action-bar" id="actionBar" data-page-node-id="aoIFID2PgPBZpEjy4HVXDN"><button class="draft" id="clearDraft" data-en="Clear draft" data-page-node-id="qFNLksjCxR9fImdSErgwFy">清空草稿</button><button class="draft" id="bottomShareBtn" style="color:var(--green);border-color:#4a7553;" data-page-node-id="tcRk2E6MB7NsE2Ewtzn4vl"><i data-icon="share"></i> <span data-en="Share with coach">分享给教练</span></button><button class="finish" id="finishWorkout" data-en="Finish session" data-page-node-id="3EB788NUc8x0cwgD1QNkpQ">完成本次训练</button></div>
     <div class="toast" id="toast" role="status" data-page-node-id="vFIrCWDGlNnYaGI8O38Xkc"></div>
 
     <!-- Coach Viewer Mode -->
     <main class="viewer-app" id="coachViewer" hidden aria-labelledby="viewerBannerTitle" data-page-node-id="6X5l5QeFGLDAfGXeBdjpOd">
       <div class="viewer-banner" data-page-node-id="5pRR7XcrAgUxFc0huD813b">
-        <div class="viewer-banner-tag" data-page-node-id="HRx6ydSAV9Hb8KzDDGQH0M"><span aria-hidden="true" data-page-node-id="hY436I5gyuo5NwZPfCTQXB">👀</span><strong id="viewerBannerTitle" data-en="Coach / guest view (read-only)" data-page-node-id="SyeYNufJDDDKNHKmxIikqo">教练/访客查阅模式（只读）</strong></div>
+        <div class="viewer-banner-tag" data-page-node-id="HRx6ydSAV9Hb8KzDDGQH0M"><span aria-hidden="true" data-page-node-id="hY436I5gyuo5NwZPfCTQXB"><i data-icon="eye"></i></span><strong id="viewerBannerTitle" data-en="Coach / guest view (read-only)" data-page-node-id="SyeYNufJDDDKNHKmxIikqo">教练/访客查阅模式（只读）</strong></div>
         <button type="button" class="exit-viewer-btn" id="exitViewer" data-en="Exit · open my log" data-page-node-id="XeO4LwX3R1PJquATPxIxJh">退出查阅 / 进入我的打卡</button>
       </div>
       <div id="viewerContent" data-page-node-id="2OoUTh0xYVNKI5JQmTxA6t"></div>
@@ -376,10 +378,10 @@
           <button type="button" class="copy-url-btn" id="copyUrlBtn" data-en="Copy link" data-page-node-id="vhTwtXDhy57F3sK760Gp1f">复制链接</button>
         </div>
         <div class="share-actions" style="margin-bottom:10px;" data-page-node-id="xiYBemtKVGvqV51s0nlEKk">
-          <button type="button" class="modal-action-btn modal-action-primary" id="copyLinkAndShareBtn" data-page-node-id="xYEwJdqYi8SrSTUMcopO2r">🔗 <span data-en="Copy coach link">复制教练专属链接</span></button>
-          <button type="button" class="modal-action-btn modal-action-secondary" id="copyWeChatTextBtn" data-page-node-id="YCLEDrBe7SISGtXWI6ReiO">📋 <span data-en="Copy WeChat report">复制微信文字日报</span></button>
+          <button type="button" class="modal-action-btn modal-action-primary" id="copyLinkAndShareBtn" data-page-node-id="xYEwJdqYi8SrSTUMcopO2r"><i data-icon="link"></i> <span data-en="Copy coach link">复制教练专属链接</span></button>
+          <button type="button" class="modal-action-btn modal-action-secondary" id="copyWeChatTextBtn" data-page-node-id="YCLEDrBe7SISGtXWI6ReiO"><i data-icon="copy"></i> <span data-en="Copy WeChat report">复制微信文字日报</span></button>
         </div>
-        <button type="button" class="modal-action-btn modal-action-secondary" id="previewCoachViewBtn" style="width:100%; border-color:#4a7553; color:var(--green); background:#1a2b1f;" data-page-node-id="NEy1qrbqFZG66GUi7UJPhg">👀 <span data-en="Preview the coach view here">在当前页面直接预览教练视角</span></button>
+        <button type="button" class="modal-action-btn modal-action-secondary" id="previewCoachViewBtn" style="width:100%; border-color:#4a7553; color:var(--green); background:#1a2b1f;" data-page-node-id="NEy1qrbqFZG66GUi7UJPhg"><i data-icon="eye"></i> <span data-en="Preview the coach view here">在当前页面直接预览教练视角</span></button>
       </div>
     </div>
 
@@ -387,7 +389,7 @@
     <dialog class="extra-dialog vault-dialog" id="vaultModal">
       <header class="extra-header">
         <div>
-          <h2 style="font-size:20px; letter-spacing:-.03em; margin:0;" data-en="📖 My Exercise Playbook">📖 我的动作宝典</h2>
+          <h2 style="font-size:20px; letter-spacing:-.03em; margin:0;" data-en="My Exercise Playbook">我的动作宝典</h2>
           <span class="vault-head-sub" id="vaultCountSub" style="font-size:12px; color:var(--muted); margin-top:3px; display:block;">已沉淀 0 个动作教学要领</span>
         </div>
         <button class="extra-close" id="closeVault" aria-label="关闭动作宝典" data-en-aria="Close playbook">×</button>
@@ -414,7 +416,7 @@
     <dialog class="extra-dialog draft-modal" id="draftModal">
       <header class="extra-header">
         <div>
-          <h2 style="font-size:20px; margin:0;" data-en="💾 Current draft">💾 本次训练草稿</h2>
+          <h2 style="font-size:20px; margin:0;" data-en="Current draft">本次训练草稿</h2>
           <span style="font-size:12px; color:var(--green); margin-top:3px; display:block;" data-en="● Auto-saved on this device; survives a refresh">● 实时自动保存在本机，刷新不丢失</span>
         </div>
         <button class="extra-close" id="closeDraftModal" aria-label="关闭" data-en-aria="Close">×</button>
@@ -440,7 +442,7 @@
         </div>
 
         <div class="draft-memo-box">
-          <span style="font-weight:800; color:var(--green); font-size:13px; display:block; margin-bottom:4px;" data-en="💡 Why is there no save button for drafts?">💡 为什么不需要手动保存草稿？</span>
+          <span style="font-weight:800; color:var(--green); font-size:13px; display:block; margin-bottom:4px;" data-en="Why is there no save button for drafts?">为什么不需要手动保存草稿？</span>
           <p style="margin:0; font-size:13px; color:#c7c7cc; line-height:1.6;" data-en="Everything you enter under This Session — exercises, weights, reps and cues — is saved instantly in this browser. Switching to WeChat, locking the screen or refreshing won't lose it. When the whole session is done, tap Finish session at the bottom to count it toward your 20 check-ins.">
             你在【本次训练】填写的每一个动作、重量、次数或教学口诀，都会<strong>即时保存在当前设备浏览器中</strong>。中途切换微信、锁屏或刷新网页，内容都会完好保留。<br>
             当整堂课全部练完后，点击屏幕最下方的【完成本次训练】，就会正式记入你的 20 次总打卡进度中！
@@ -458,6 +460,18 @@
     <script src="catalog-data.js"></script>
     <script src="vault-presets.js"></script>
     <script>
+      const ICON_PATHS = {
+        book: '<path d="M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v15H6.5A2.5 2.5 0 0 0 4 19.5Zm0 0A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
+        share: '<path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/>',
+        link: '<path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 0 0-7.07-7.07l-1.5 1.5M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 0 0 7.07 7.07l1.5-1.5"/>',
+        copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+        eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+        edit: '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+        dumbbell: '<path d="M6 6v12M18 6v12M3 9.5v5M21 9.5v5M6 12h12"/>'
+      };
+      function icon(name) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + (ICON_PATHS[name] || '') + '</svg>'; }
+      window.icon = icon;
+      document.querySelectorAll('i[data-icon]').forEach(el => { el.outerHTML = icon(el.dataset.icon); });
       I18N.apply();
       const STORAGE_KEY = 'strength-workout-log-v2';
       const AI_CONFIG_KEY = 'strength-ai-config-v1';
@@ -653,7 +667,7 @@
       }
       function renderExercises() {
         if (!state.current.exercises.length) { $('exerciseList').innerHTML = '<div class="empty"><div class="empty-mark">＋</div><strong>' + L('还没有动作记录', 'No exercises yet') + '</strong><p>' + L('添加你今天实际完成的第一个动作，重量和次数都可以之后再补。', 'Add the first exercise you actually did today — weights and reps can be filled in later.') + '</p><button class="add-button" id="emptyAdd">' + L('添加第一个动作', 'Add first exercise') + '</button></div>'; $('emptyAdd').addEventListener('click', addExercise); return; }
-        $('exerciseList').innerHTML = '<div class="exercise-list">' + state.current.exercises.map((exercise, exerciseIndex) => '<article class="exercise" data-exercise="' + exercise.id + '"><div class="exercise-head"><div class="exercise-index">' + String(exerciseIndex + 1).padStart(2,'0') + '</div><div class="exercise-name-wrap"><input class="exercise-name" data-field="name" value="' + escapeHtml(exercise.name) + '" placeholder="' + L('动作名称', 'Exercise name') + '" aria-label="' + L('动作名称', 'Exercise name') + '" /><span class="exercise-en">' + escapeHtml(exerciseEnglishHint(exercise)) + '</span></div><button class="remove" data-action="remove-exercise" aria-label="' + L('删除动作', 'Delete exercise') + '">×</button></div><div class="set-header"><span>' + L('组', 'Set') + '</span><span>' + L('重量（kg）', 'Weight (kg)') + '</span><span></span><span>' + L('次数', 'Reps') + '</span><span>' + L('完成', 'Done') + '</span></div>' + exercise.sets.map((set, setIndex) => '<div class="set-row" data-set="' + setIndex + '"><span class="set-number">' + (setIndex + 1) + '</span><input class="set-input" data-field="weight" inputmode="decimal" value="' + escapeHtml(set.weight) + '" placeholder="—" aria-label="' + L('第 ' + (setIndex + 1) + ' 组重量', 'Set ' + (setIndex + 1) + ' weight') + '" /><span class="times">×</span><input class="set-input" data-field="reps" inputmode="numeric" value="' + escapeHtml(set.reps) + '" placeholder="—" aria-label="' + L('第 ' + (setIndex + 1) + ' 组次数', 'Set ' + (setIndex + 1) + ' reps') + '" /><button class="done-check ' + (set.done ? 'checked' : '') + '" data-action="toggle-set" aria-label="' + L('第 ' + (setIndex + 1) + ' 组完成', 'Set ' + (setIndex + 1) + ' done') + '"><span>✓</span></button></div>').join('') + '<div class="set-actions"><button class="add-set" data-action="add-set">' + L('＋ 添加一组', '＋ Add set') + '</button><span class="volume">' + volumeLabel(exerciseVolume(exercise)) + '</span></div><div class="exercise-tips-wrap"><div class="exercise-tips-head"><span class="exercise-tips-title">' + L('💡 动作要领 &amp; 教学口诀', '💡 Form cues') + '</span><span class="exercise-tips-hint">' + L('自动存入动作宝典', 'Auto-saved to playbook') + '</span></div><textarea class="exercise-tips-input" data-field="tips" placeholder="' + L('记录教练指导的器械调节、发力口诀或避坑细节...', 'Machine settings, coaching cues, mistakes to avoid...') + '" maxlength="300">' + escapeHtml(exercise.tips || '') + '</textarea></div></article>').join('') + '</div>';
+        $('exerciseList').innerHTML = '<div class="exercise-list">' + state.current.exercises.map((exercise, exerciseIndex) => '<article class="exercise" data-exercise="' + exercise.id + '"><div class="exercise-head"><div class="exercise-index">' + String(exerciseIndex + 1).padStart(2,'0') + '</div><div class="exercise-name-wrap"><input class="exercise-name" data-field="name" value="' + escapeHtml(exercise.name) + '" placeholder="' + L('动作名称', 'Exercise name') + '" aria-label="' + L('动作名称', 'Exercise name') + '" /><span class="exercise-en">' + escapeHtml(exerciseEnglishHint(exercise)) + '</span></div><button class="remove" data-action="remove-exercise" aria-label="' + L('删除动作', 'Delete exercise') + '">×</button></div><div class="set-header"><span>' + L('组', 'Set') + '</span><span>' + L('重量（kg）', 'Weight (kg)') + '</span><span></span><span>' + L('次数', 'Reps') + '</span><span>' + L('完成', 'Done') + '</span></div>' + exercise.sets.map((set, setIndex) => '<div class="set-row" data-set="' + setIndex + '"><span class="set-number">' + (setIndex + 1) + '</span><input class="set-input" data-field="weight" inputmode="decimal" value="' + escapeHtml(set.weight) + '" placeholder="—" aria-label="' + L('第 ' + (setIndex + 1) + ' 组重量', 'Set ' + (setIndex + 1) + ' weight') + '" /><span class="times">×</span><input class="set-input" data-field="reps" inputmode="numeric" value="' + escapeHtml(set.reps) + '" placeholder="—" aria-label="' + L('第 ' + (setIndex + 1) + ' 组次数', 'Set ' + (setIndex + 1) + ' reps') + '" /><button class="done-check ' + (set.done ? 'checked' : '') + '" data-action="toggle-set" aria-label="' + L('第 ' + (setIndex + 1) + ' 组完成', 'Set ' + (setIndex + 1) + ' done') + '"><span>✓</span></button></div>').join('') + '<div class="set-actions"><button class="add-set" data-action="add-set">' + L('＋ 添加一组', '＋ Add set') + '</button><span class="volume">' + volumeLabel(exerciseVolume(exercise)) + '</span></div><div class="exercise-tips-wrap"><div class="exercise-tips-head"><span class="exercise-tips-title">' + L('动作要领 &amp; 教学口诀', 'Form cues') + '</span><span class="exercise-tips-hint">' + L('自动存入动作宝典', 'Auto-saved to playbook') + '</span></div><textarea class="exercise-tips-input" data-field="tips" placeholder="' + L('记录教练指导的器械调节、发力口诀或避坑细节...', 'Machine settings, coaching cues, mistakes to avoid...') + '" maxlength="300">' + escapeHtml(exercise.tips || '') + '</textarea></div></article>').join('') + '</div>';
         $('exerciseList').querySelectorAll('[data-exercise]').forEach(card => {
           const exercise = state.current.exercises.find(item => item.id === card.dataset.exercise);
           if (!exercise) return;
@@ -703,7 +717,7 @@
       function updateCaloriesOnly() { const value = estimatedCalories(); state.current.calories = String(value); $('caloriesInput').value = value; saveState(); }
       function renderHistory() {
         $('historyCaption').textContent = state.sessions.length ? L('共 ' + state.sessions.length + ' 次', state.sessions.length + ' total') : L('还没有记录', 'No sessions yet');
-        $('historyList').innerHTML = state.sessions.length ? state.sessions.map((session, index) => '<article class="history-card"><strong>' + formatDate(session.date) + '</strong><time>' + (session.duration ? escapeHtml(session.duration) + L(' 分钟', ' min') : L('时长未填', 'No duration')) + '</time><div class="history-stats">' + session.exercises.length + L(' 个动作', (session.exercises.length) === 1 ? ' exercise' : ' exercises') + ' · ' + (session.volume ? Number(session.volume).toLocaleString() + ' kg' : L('容量未填', 'No volume')) + '</div><p>' + (session.notes ? escapeHtml(session.notes) : L('已完成训练记录', 'Session logged')) + '</p><div class="history-card-actions"><button type="button" class="history-del-btn" data-delete-index="' + index + '">' + L('删除', 'Delete') + '</button><button type="button" class="history-share-btn" data-share-index="' + index + '">📤 ' + L('分享此条给教练', 'Share') + '</button></div></article>').join('') : '<div class="history-empty">' + L('完成并保存一次训练后，真实记录会显示在这里。', 'Your real sessions appear here once you finish and save one.') + '</div>';
+        $('historyList').innerHTML = state.sessions.length ? state.sessions.map((session, index) => '<article class="history-card"><strong>' + formatDate(session.date) + '</strong><time>' + (session.duration ? escapeHtml(session.duration) + L(' 分钟', ' min') : L('时长未填', 'No duration')) + '</time><div class="history-stats">' + session.exercises.length + L(' 个动作', (session.exercises.length) === 1 ? ' exercise' : ' exercises') + ' · ' + (session.volume ? Number(session.volume).toLocaleString() + ' kg' : L('容量未填', 'No volume')) + '</div><p>' + (session.notes ? escapeHtml(session.notes) : L('已完成训练记录', 'Session logged')) + '</p><div class="history-card-actions"><button type="button" class="history-del-btn" data-delete-index="' + index + '">' + L('删除', 'Delete') + '</button><button type="button" class="history-share-btn" data-share-index="' + index + '">' + icon('share') + ' ' + L('分享此条给教练', 'Share') + '</button></div></article>').join('') : '<div class="history-empty">' + L('完成并保存一次训练后，真实记录会显示在这里。', 'Your real sessions appear here once you finish and save one.') + '</div>';
         $('historyList').querySelectorAll('[data-share-index]').forEach(btn => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.dataset.shareIndex);
@@ -1231,8 +1245,8 @@
       function renderCoachViewer(payload) {
         const container = $('viewerContent');
         const head = (tag, zh, en, aside) => '<div class="viewer-card-head"><' + tag + '>' + L(zh, en) + '</' + tag + '>' + (aside || '') + '</div>';
-        const coachCard = (zh, en, reply) => '<section class="viewer-coach-card"><div style="font-size:15px; font-weight:850; color:var(--green); margin-bottom:4px;">' + L(zh, en) + '</div><div style="font-size:13px; color:var(--muted);">' + L('可直接复制发给学员：', 'Copy and send to your trainee:') + '</div><div class="viewer-reply-box" id="coachReplyText">' + escapeHtml(reply) + '</div><button type="button" class="copy-coach-reply-btn" id="copyCoachReplyBtn">📋 ' + L('一键复制评语', 'Copy reply') + '</button></section>';
-        const actions = (zh, en) => '<div class="viewer-actions"><button type="button" class="viewer-btn viewer-btn-primary" id="viewerCopyReportBtn">📋 ' + L(zh, en) + '</button><button type="button" class="viewer-btn viewer-btn-secondary" id="viewerBackBtn">' + L('返回我的打卡', 'Back to my log') + '</button></div>';
+        const coachCard = (zh, en, reply) => '<section class="viewer-coach-card"><div style="font-size:15px; font-weight:850; color:var(--green); margin-bottom:4px;">' + L(zh, en) + '</div><div style="font-size:13px; color:var(--muted);">' + L('可直接复制发给学员：', 'Copy and send to your trainee:') + '</div><div class="viewer-reply-box" id="coachReplyText">' + escapeHtml(reply) + '</div><button type="button" class="copy-coach-reply-btn" id="copyCoachReplyBtn">' + icon('copy') + ' ' + L('一键复制评语', 'Copy reply') + '</button></section>';
+        const actions = (zh, en) => '<div class="viewer-actions"><button type="button" class="viewer-btn viewer-btn-primary" id="viewerCopyReportBtn">' + icon('copy') + ' ' + L(zh, en) + '</button><button type="button" class="viewer-btn viewer-btn-secondary" id="viewerBackBtn">' + L('返回我的打卡', 'Back to my log') + '</button></div>';
         const setRow = (set, sIdx, compact) => '<div class="viewer-set-row ' + (set.d ? 'done' : '') + '"' + (compact ? ' style="padding:6px 8px; font-size:13px;"' : '') + '><span class="set-number">' + (sIdx + 1) + '</span><span style="font-weight:750;">' + (set.w ? escapeHtml(set.w) + ' kg' : '—') + '</span><span class="times">×</span><span style="font-weight:750;">' + (set.r ? escapeHtml(set.r) + L(' 次', '') : '—') + '</span><span class="viewer-check-badge">' + (set.d ? '✓' : '○') + '</span></div>';
         const bindCommon = (reply, toastZh, toastEn) => {
           $('copyCoachReplyBtn')?.addEventListener('click', async () => {
@@ -1268,22 +1282,22 @@
           let html = '<section class="viewer-card">' + head('h2', '学员累计打卡档案', 'Progress overview', '<span class="goal">' + L('目标 ' + goal + ' 次', 'Goal: ' + goal) + '</span>');
           html += '<div class="goal-card" style="margin-bottom:0;"><div class="goal-copy"><strong>' + L('打卡达成率 ', 'Completion ') + percent + '%</strong><span>' + L('已完成 ' + count + ' 次训练，还差 ' + Math.max(goal - count, 0) + ' 次达成阶段目标', count + ' done, ' + Math.max(goal - count, 0) + ' to go') + '</span><div class="goal-meter" aria-hidden="true"><i style="width:' + percent + '%"></i></div></div><div class="goal-number">' + count + ' / ' + goal + '</div></div></section>';
 
-          html += '<section class="viewer-card">' + head('h3', '📊 累计负荷看板', '📊 Totals', '<span style="font-size:12px; color:var(--muted);">' + L('阶段汇总', 'To date') + '</span>') + '<div class="viewer-kpi-grid">';
-          html += kpi('🧱 累计总容量', '🧱 Total volume', totVol ? totVol.toLocaleString() + ' kg' : '—', totVol >= 10000 ? '≈ ' + (totVol / 1000).toFixed(1) + L(' 吨', ' t') : (avgVol ? L('场均 ', 'avg ') + avgVol.toLocaleString() + 'kg' : ''), true);
-          html += kpi('⏱️ 累计总时长', '⏱️ Total time', formatDuration(totDur), avgDur ? L('场均 ' + avgDur + ' 分钟', 'avg ' + avgDur + ' min') : '');
-          html += kpi('🎯 打卡出勤', '🎯 Sessions', count + L(' 次', ''), L('目标 ', 'goal ') + goal + ' (' + percent + '%)');
-          html += kpi('🔥 累计消耗', '🔥 Calories', num(stats.totCal) ? num(stats.totCal).toLocaleString() + ' kcal' : '—', num(stats.sets) ? L('完成 ' + num(stats.sets) + ' 组', num(stats.sets) + ' sets done') : '');
+          html += '<section class="viewer-card">' + head('h3', '累计负荷看板', 'Totals', '<span style="font-size:12px; color:var(--muted);">' + L('阶段汇总', 'To date') + '</span>') + '<div class="viewer-kpi-grid">';
+          html += kpi('累计总容量', 'Total volume', totVol ? totVol.toLocaleString() + ' kg' : '—', totVol >= 10000 ? '≈ ' + (totVol / 1000).toFixed(1) + L(' 吨', ' t') : (avgVol ? L('场均 ', 'avg ') + avgVol.toLocaleString() + 'kg' : ''), true);
+          html += kpi('累计总时长', 'Total time', formatDuration(totDur), avgDur ? L('场均 ' + avgDur + ' 分钟', 'avg ' + avgDur + ' min') : '');
+          html += kpi('打卡出勤', 'Sessions', count + L(' 次', ''), L('目标 ', 'goal ') + goal + ' (' + percent + '%)');
+          html += kpi('累计消耗', 'Calories', num(stats.totCal) ? num(stats.totCal).toLocaleString() + ' kcal' : '—', num(stats.sets) ? L('完成 ' + num(stats.sets) + ' 组', num(stats.sets) + ' sets done') : '');
           html += '</div></section>';
 
           if (prs.length) {
-            html += '<section class="viewer-card">' + head('h3', '🏆 动作最佳重量', '🏆 Best lifts (PR)') + '<div class="viewer-pr-grid">';
+            html += '<section class="viewer-card">' + head('h3', '动作最佳重量', 'Best lifts (PR)') + '<div class="viewer-pr-grid">';
             prs.forEach(p => {
               html += '<div class="viewer-pr-card"><div class="viewer-pr-title"><span>' + escapeHtml(p.n) + '</span><span class="viewer-pr-badge">PR</span></div><div class="viewer-pr-num">' + num(p.mw) + ' kg</div><div class="viewer-pr-sub">' + (num(p.mr) ? '× ' + num(p.mr) + L(' 次', ' reps') + ' · ' : '') + L('单组负荷 ', 'best set ') + num(p.mv).toLocaleString() + 'kg<br>' + L('累计 ' + num(p.ts) + ' 组', num(p.ts) + ' sets total') + '</div></div>';
             });
             html += '</div></section>';
           }
 
-          html += '<section class="viewer-card">' + head('h3', '📅 历次训练 (' + sessionList.length + ')', '📅 Sessions (' + sessionList.length + ')', '<span style="font-size:12px; color:var(--muted);">' + L('点击展开', 'Tap to expand') + '</span>');
+          html += '<section class="viewer-card">' + head('h3', '历次训练 (' + sessionList.length + ')', 'Sessions (' + sessionList.length + ')', '<span style="font-size:12px; color:var(--muted);">' + L('点击展开', 'Tap to expand') + '</span>');
           if (!sessionList.length) {
             html += '<div class="history-empty">' + L('暂无训练记录', 'No sessions yet') + '</div>';
           } else {
@@ -1308,7 +1322,7 @@
             html += '</div>';
           }
           html += '</section>';
-          html += coachCard('💬 教练阶段反馈模版', '💬 Coach reply template', reply);
+          html += coachCard('教练阶段反馈模版', 'Coach reply template', reply);
           html += actions('复制累计总览文字', 'Copy progress text');
           container.innerHTML = html;
 
@@ -1339,18 +1353,18 @@
         const meta = (zh, en, value, green) => '<div class="viewer-meta-item"><div class="viewer-meta-label">' + L(zh, en) + '</div><div class="viewer-meta-val' + (green ? ' green' : '') + '">' + value + '</div></div>';
 
         let html = '<section class="viewer-card">' + head('h2', '学员训练打卡报告', 'Workout report', '<span style="color:var(--green); font-weight:800; font-size:14px;">' + L('第 ' + index + ' / ' + goal + ' 次', '#' + index + ' / ' + goal) + '</span>');
-        if (cumVol) html += '<div style="margin-top:10px; padding:8px 12px; border-radius:10px; background:#18261b; border:1px solid #2d4c35; font-size:12px; color:#c7e0cb; display:flex; justify-content:space-between; align-items:center; gap:10px;"><span>🏆 ' + L('阶段累计总容量', 'Total volume to date') + '</span><strong style="color:var(--green); font-size:14px; white-space:nowrap;">' + cumVol.toLocaleString() + ' kg</strong></div>';
+        if (cumVol) html += '<div style="margin-top:10px; padding:8px 12px; border-radius:10px; background:#18261b; border:1px solid #2d4c35; font-size:12px; color:#c7e0cb; display:flex; justify-content:space-between; align-items:center; gap:10px;"><span>' + L('阶段累计总容量', 'Total volume to date') + '</span><strong style="color:var(--green); font-size:14px; white-space:nowrap;">' + cumVol.toLocaleString() + ' kg</strong></div>';
         html += '<div class="viewer-meta-grid">' + meta('训练日期', 'Date', formatDate(payload.date)) + meta('训练时长', 'Duration', payload.dur ? escapeHtml(payload.dur) + L(' 分', ' min') : '—') + meta('热量消耗', 'Calories', payload.cal ? escapeHtml(payload.cal) + ' kcal' : '—') + meta('本次总容量', 'Volume', vol ? vol.toLocaleString() + ' kg' : '—', true) + '</div></section>';
         html += '<section class="viewer-card">' + head('h3', '动作明细 (' + exercises.length + ' 个动作 · 完成 ' + completedSetsCount + '/' + totalSetsCount + ' 组)', 'Exercises (' + exercises.length + ' · ' + completedSetsCount + '/' + totalSetsCount + ' sets done)') + '<div>';
         html += exercises.map((ex, exIdx) => {
           const exVol = payloadExVolume(ex);
           const english = I18N.mode === 'zh' ? '' : catalogEnglishName({ name: ex.n || '' });
-          return '<div class="viewer-exercise-item"><div class="viewer-ex-head"><div class="viewer-ex-title"><span class="viewer-ex-badge">' + String(exIdx + 1).padStart(2, '0') + '</span><span>' + escapeHtml(ex.n || L('未命名动作', 'Unnamed exercise')) + (english ? '<span class="exercise-en" style="margin-top:2px;">' + escapeHtml(english) + '</span>' : '') + '</span></div><span class="viewer-ex-vol">' + (exVol ? exVol.toLocaleString() + ' kg' : '') + '</span></div>' + (ex.tips ? '<div style="margin:4px 0 10px; padding:6px 10px; border-radius:8px; background:#18251c; border:1px solid #2d4c36; font-size:12px; color:#c7e3cb; line-height:1.5;">💡 <strong>' + L('动作要领', 'Cues') + '：</strong>' + escapeHtml(ex.tips) + '</div>' : '') + '<div class="set-header"><span>' + L('组', 'Set') + '</span><span>' + L('重量（kg）', 'Weight (kg)') + '</span><span></span><span>' + L('次数', 'Reps') + '</span><span style="text-align:center;">' + L('完成', 'Done') + '</span></div><div class="viewer-sets-grid">' + (Array.isArray(ex.s) ? ex.s : []).map((s, sIdx) => setRow(s, sIdx, false)).join('') + '</div></div>';
+          return '<div class="viewer-exercise-item"><div class="viewer-ex-head"><div class="viewer-ex-title"><span class="viewer-ex-badge">' + String(exIdx + 1).padStart(2, '0') + '</span><span>' + escapeHtml(ex.n || L('未命名动作', 'Unnamed exercise')) + (english ? '<span class="exercise-en" style="margin-top:2px;">' + escapeHtml(english) + '</span>' : '') + '</span></div><span class="viewer-ex-vol">' + (exVol ? exVol.toLocaleString() + ' kg' : '') + '</span></div>' + (ex.tips ? '<div style="margin:4px 0 10px; padding:6px 10px; border-radius:8px; background:#18251c; border:1px solid #2d4c36; font-size:12px; color:#c7e3cb; line-height:1.5;"><strong>' + L('动作要领', 'Cues') + '：</strong>' + escapeHtml(ex.tips) + '</div>' : '') + '<div class="set-header"><span>' + L('组', 'Set') + '</span><span>' + L('重量（kg）', 'Weight (kg)') + '</span><span></span><span>' + L('次数', 'Reps') + '</span><span style="text-align:center;">' + L('完成', 'Done') + '</span></div><div class="viewer-sets-grid">' + (Array.isArray(ex.s) ? ex.s : []).map((s, sIdx) => setRow(s, sIdx, false)).join('') + '</div></div>';
         }).join('') || '<div class="empty"><p>' + L('未填写动作记录', 'No exercises recorded') + '</p></div>';
         html += '</div></section>';
         if (payload.notes) html += '<section class="viewer-card">' + head('h3', '学员训练心得 / 备注', 'Notes') + '<p style="margin:0; font-size:14px; line-height:1.6; color:#e0e0e3;">' + escapeHtml(payload.notes) + '</p></section>';
         if (payload.ai) html += '<section class="ai-card" style="margin-bottom:20px;"><div class="ai-kicker">' + L('AI 训练总结', 'AI summary') + '</div><div class="ai-content" style="margin-top:6px;">' + escapeHtml(payload.ai) + '</div></section>';
-        html += coachCard('💬 教练快速反馈模版', '💬 Coach reply template', reply);
+        html += coachCard('教练快速反馈模版', 'Coach reply template', reply);
         html += actions('复制本次打卡文字', 'Copy report text');
         container.innerHTML = html;
         bindCommon(reply, '训练文字已复制，可直接发给微信', 'Report text copied');

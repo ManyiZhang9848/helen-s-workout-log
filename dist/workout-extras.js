@@ -446,7 +446,7 @@
 
     if (!items.length) {
       if (totalCount === 0) {
-        vaultList.innerHTML = '<div class="vault-empty"><div class="vault-empty-icon">📖</div><strong>' + L('还没有沉淀动作教学要领', 'No form cues yet') + '</strong><p style="margin:8px 0 0;">' + L('在训练中添加动作并在下方写下教练口诀，<br>保存训练后就会自动在这里生成你的专属动作宝典！', 'Add exercises and jot down your coach’s cues below each one — they’ll collect here once you save the session.') + '</p></div>';
+        vaultList.innerHTML = '<div class="vault-empty"><div class="vault-empty-icon">' + icon('book') + '</div><strong>' + L('还没有沉淀动作教学要领', 'No form cues yet') + '</strong><p style="margin:8px 0 0;">' + L('在训练中添加动作并在下方写下教练口诀，<br>保存训练后就会自动在这里生成你的专属动作宝典！', 'Add exercises and jot down your coach’s cues below each one — they’ll collect here once you save the session.') + '</p></div>';
       } else {
         vaultList.innerHTML = '<div class="vault-empty"><p>' + L('没有找到符合条件的动作教学要领。', 'Nothing matches.') + '</p></div>';
       }
@@ -465,7 +465,7 @@
           (gif ? '<span class="vault-gif-tag">' + L('▶ 动图', '▶ GIF') + '</span>' : '') +
         '</div>'
       ) : (
-        '<div class="vault-media-wrap" style="background:#22252a; display:grid; place-items:center; color:var(--green); font-size:22px; font-weight:900;">🏋️</div>'
+        '<div class="vault-media-wrap" style="background:#22252a; display:grid; place-items:center; color:var(--green); font-size:24px;">' + icon('dumbbell') + '</div>'
       );
 
       return '<article class="vault-card" data-vault-key="' + escapeHtml(item.key) + '">' +
@@ -483,8 +483,8 @@
         '</div>' +
         '<div class="vault-tip-box">' +
           '<div class="vault-tip-head">' +
-            '<span>' + L('💡 教学要领 &amp; 口诀', '💡 Form cues') + '</span>' +
-            '<button type="button" class="vault-edit-btn" data-action="edit-tip">✏️ ' + L('编辑', 'Edit') + '</button>' +
+            '<span>' + L('教学要领 &amp; 口诀', 'Form cues') + '</span>' +
+            '<button type="button" class="vault-edit-btn" data-action="edit-tip">' + icon('edit') + ' ' + L('编辑', 'Edit') + '</button>' +
           '</div>' +
           '<div class="vault-tip-content ' + (hasTips ? '' : 'empty') + '">' +
             (hasTips ? escapeHtml(item.tips) : L('尚未记录口诀，在下次训练时填写会自动沉淀在此', 'No cues yet — add them in your next session and they’ll appear here')) +
@@ -499,7 +499,7 @@
           '</div>' +
         '</div>' +
         '<div class="vault-card-footer">' +
-          '<span>' + (item.pr ? '🏆 ' + L('最佳', 'Best') + ' <strong>' + item.pr.maxW + 'kg</strong> × ' + item.pr.reps + L('次', '') : L('记录已同步', 'Synced')) + '</span>' +
+          '<span>' + (item.pr ? L('最佳', 'Best') + ' <strong>' + item.pr.maxW + 'kg</strong> × ' + item.pr.reps + L('次', '') : L('记录已同步', 'Synced')) + '</span>' +
           '<span>' + (item.updatedAt ? L('更新于 ', 'Updated ') + escapeHtml(item.updatedAt) : '') + '</span>' +
         '</div>' +
       '</article>';
