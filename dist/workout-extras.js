@@ -475,7 +475,6 @@
             '<div class="vault-card-meta">' +
               '<span class="vault-group-badge">' + escapeHtml(item.groupLabel) + '</span>' +
               '<span class="vault-equip-badge">' + escapeHtml(item.equipLabel) + '</span>' +
-              (item.preset ? '<span class="vault-preset-badge" title="' + L('预设要领，可以按教练的指导修改', 'Starter cues — edit them to match your coach') + '">' + L('预设', 'Starter') + '</span>' : '') +
             '</div>' +
             '<strong class="vault-card-title">' + escapeHtml(item.name) + '</strong>' +
             (item.enName ? '<span class="vault-card-en">' + escapeHtml(item.enName) + '</span>' : '') +
