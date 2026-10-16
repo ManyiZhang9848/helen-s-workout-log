@@ -1,5 +1,7 @@
 [hidden] { display:none !important; }
-.extra-dialog { width:min(760px,calc(100% - 24px)); max-height:92dvh; border:1px solid var(--line); border-radius:22px; padding:0; color:var(--text); background:var(--bg); }
+/* 弹窗避开顶部状态栏 / 灵动岛和底部横条：只在安全区内居中，高度也按安全区算 */
+:root { --dialog-max-h:calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px); }
+.extra-dialog { top:env(safe-area-inset-top, 0px); bottom:env(safe-area-inset-bottom, 0px); width:min(760px,calc(100% - 24px)); max-height:var(--dialog-max-h); border:1px solid var(--line); border-radius:22px; padding:0; color:var(--text); background:var(--bg); }
 .extra-dialog::backdrop { background:#000b; }
 .extra-header { position:sticky; top:0; z-index:2; display:flex; justify-content:space-between; align-items:center; gap:12px; padding:18px; background:var(--bg); border-bottom:1px solid var(--line); }
 .extra-header h2 { margin:0; font-size:21px; }
@@ -74,7 +76,7 @@
 .vault-pill { flex:0 0 auto; border:1px solid var(--line); border-radius:999px; padding:6px 13px; background:var(--panel); color:var(--muted); font-size:12px; font-weight:750; cursor:pointer; transition:all .15s; min-height:34px !important; }
 .vault-pill.active { border-color:var(--green); background:var(--green-dark); color:var(--green); }
 
-.vault-list { padding:16px; display:grid; gap:14px; max-height:calc(92dvh - 170px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.vault-list { padding:16px; display:grid; gap:14px; max-height:calc(var(--dialog-max-h) - 170px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .vault-card { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:15px; display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 14px rgba(0,0,0,.2); }
 .vault-card-top { display:grid; grid-template-columns:56px 1fr; gap:12px; align-items:center; }
 .vault-media-wrap { width:56px; height:56px; border-radius:12px; background:#fff; overflow:hidden; position:relative; cursor:pointer; flex-shrink:0; }
