@@ -72,10 +72,18 @@
   poster.addEventListener('close', () => posterZoom.classList.remove('show'));
   $('libraryCustom').onclick=()=>{library.close();addCustomExercise();};
   for(const id of ['librarySearch','libraryMuscle','libraryEquipment'])$(id).addEventListener('input',()=>{ libraryLimit = 20; renderLibrary(); });
+  // 用户在动作宝典里改过的中文名（按动作库 id），动作库里显示和加入训练时都用它
+  function customZhNames() {
+    const names = {};
+    Object.values(app().loadVault ? app().loadVault() : {}).forEach(item => { if (item && item.catalogId && item.name) names[item.catalogId] = item.name; });
+    return names;
+  }
+  const zhNameOf = (ex, names) => names[ex.id] || ex.zh;
   function renderLibrary() {
     const query=clean($('librarySearch').value), muscle=$('libraryMuscle').value, gear=$('libraryEquipment').value;
+    const names = customZhNames();
     const list=catalog.filter(ex=>{
-      const textMatch = !query || clean(ex.zh + ' ' + ex.name).includes(query);
+      const textMatch = !query || clean(ex.zh + ' ' + ex.name + ' ' + zhNameOf(ex, names)).includes(query);
       const muscleMatch = !muscle || ex.group === muscle || muscleGroups[ex.target] === muscle || (ex.primaryMuscles && ex.primaryMuscles.some(m => muscleGroups[m] === muscle));
       const equipMatch = !gear || ex.equipment === gear;
       return textMatch && muscleMatch && equipMatch;
@@ -88,7 +96,8 @@
       const label = groups[ex.group] || groups[muscleGroups[ex.target]] || I18N.term('主要部位','Main muscles');
       const eqText = equipment[ex.equipment] || ex.equipment || I18N.term('其他','Other');
       // 纯英文模式下英文名做标题、中文名做小字；其余模式反过来
-      const [title, subtitle] = I18N.mode === 'en' ? [ex.name, ex.zh] : [ex.zh, ex.name];
+      const zh = zhNameOf(ex, names);
+      const [title, subtitle] = I18N.mode === 'en' ? [ex.name, zh] : [zh, ex.name];
       return '<article class="library-item">' +
         '<div class="library-media-wrap" data-gif="' + gif + '" data-thumb="' + thumb + '" title="' + L('点我播放/暂停动图','Tap to play/pause') + '">' +
           '<img src="' + thumb + '" alt="' + escapeHtml(title) + ' 3D" loading="lazy" decoding="async" referrerpolicy="no-referrer">' +
@@ -119,11 +128,12 @@
     $('libraryList').querySelectorAll('[data-library-add]').forEach(button=>button.onclick=()=>{
       const ex=catalog.find(item=>item.id===button.dataset.libraryAdd);if(!ex)return;
       const vault = app().loadVault ? app().loadVault() : {};
-      const key = app().findVaultKey(vault, ex.zh, ex.id);
+      const zh = zhNameOf(ex, customZhNames());
+      const key = app().findVaultKey(vault, zh, ex.id);
       const prevTips = vault[key]?.tips || '';
-      const item={...app().blankExercise(),name:ex.zh,catalogId:ex.id,muscleGroup:ex.group||muscleGroups[ex.target]||'',tips:prevTips};
+      const item={...app().blankExercise(),name:zh,catalogId:ex.id,muscleGroup:ex.group||muscleGroups[ex.target]||'',tips:prevTips};
       app().getState().current.exercises.push(item);saveState();library.close();render();
-      showToast(prevTips ? L('已添加 ' + ex.zh + '，已自动带出教学要领', 'Added ' + ex.name + ' with your saved cues') : L('已添加 ' + ex.zh, 'Added ' + ex.name));
+      showToast(prevTips ? L('已添加 ' + zh + '，已自动带出教学要领', 'Added ' + ex.name + ' with your saved cues') : L('已添加 ' + zh, 'Added ' + ex.name));
       const cards=document.querySelectorAll('[data-exercise]');cards[cards.length-1]?.scrollIntoView({block:'center',behavior:'smooth'});
     });
     const loadBtn = $('loadMoreExercises');
@@ -368,12 +378,13 @@
     const sessions = app().getState()?.sessions || [];
 
     // 计算各动作 PR
-    const prMap = {};
+    const prMap = {}, prKeyByCatalog = {};
     sessions.forEach(s => {
       (s.exercises || []).forEach(ex => {
         const rawName = (ex.name || '').trim();
         if (!rawName) return;
         const key = clean(rawName);
+        if (ex.catalogId && !prKeyByCatalog[ex.catalogId]) prKeyByCatalog[ex.catalogId] = key;
         if (!prMap[key]) prMap[key] = { maxW: 0, reps: 0, sets: 0, lastDate: s.date || '' };
         (ex.sets || []).forEach(set => {
           const w = parseFloat(set.weight) || 0;
@@ -395,7 +406,7 @@
       const match = matchExercise({ name: item.name, catalogId: item.catalogId });
       let groupKey = item.muscleGroup || (match ? (match.group || muscleGroups[match.target] || '') : '');
       const equipKey = match ? (match.equipment || '') : '';
-      const pr = prMap[key] || null;
+      const pr = prMap[key] || (item.catalogId && prMap[prKeyByCatalog[item.catalogId]]) || null;
       return {
         key,
         name: item.name,
@@ -489,6 +500,8 @@
             (hasTips ? escapeHtml(item.tips) : L('尚未记录口诀，在下次训练时填写会自动沉淀在此', 'No cues yet — add them in your next session and they’ll appear here')) +
           '</div>' +
           '<div class="vault-tip-edit-area" hidden>' +
+            '<label class="vault-edit-label">' + L('动作名称', 'Exercise name') + '<input class="vault-edit-name" maxlength="40" value="' + escapeHtml(item.name) + '"></label>' +
+            '<label class="vault-edit-label">' + L('教学要领 & 口诀', 'Form cues') + '</label>' +
             '<textarea class="vault-edit-textarea" rows="3" maxlength="300" placeholder="' + L('如：座椅高度齐胸；下拉先沉肩，手肘往裤兜带；避免耸肩借力...', 'e.g. seat at chest height; shoulders down first, elbows to pockets; no shrugging...') + '">' + escapeHtml(item.tips || '') + '</textarea>' +
             '<div class="vault-edit-actions">' +
               '<button type="button" class="vault-delete-btn">' + L('删除动作', 'Delete') + '</button>' +
@@ -524,7 +537,7 @@
 
     // 事件绑定：编辑与保存口诀
     vaultList.querySelectorAll('.vault-card').forEach(card => {
-      const key = card.dataset.vaultKey;
+      let key = card.dataset.vaultKey;
       const editBtn = card.querySelector('[data-action="edit-tip"]');
       const contentEl = card.querySelector('.vault-tip-content');
       const editArea = card.querySelector('.vault-tip-edit-area');
@@ -532,6 +545,7 @@
       const cancelBtn = card.querySelector('.vault-cancel-btn');
       const saveBtn = card.querySelector('.vault-save-btn');
       const deleteBtn = card.querySelector('.vault-delete-btn');
+      const nameInput = card.querySelector('.vault-edit-name');
 
       if (!editBtn || !editArea) return;
 
@@ -547,6 +561,7 @@
         editArea.hidden = true;
         editBtn.hidden = false;
         textarea.value = vault[key]?.tips || '';
+        nameInput.value = vault[key]?.name || '';
       };
 
       deleteBtn.onclick = () => {
@@ -562,6 +577,16 @@
         const newTips = textarea.value.trim();
         const d = new Date();
         const todayStr = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        // 改名：宝典按名字索引，名字变了就换一个 key；动作库 id 不变，所以以前的记录和动作库都还能对上
+        const newName = nameInput.value.trim();
+        if (vault[key] && newName && newName !== vault[key].name) {
+          const newKey = clean(newName);
+          if (newKey !== key && vault[newKey]) { showToast(L('宝典里已经有「' + vault[newKey].name + '」了', '"' + vault[newKey].name + '" is already in your playbook')); return; }
+          const entry = { ...vault[key], name: newName };
+          delete vault[key];
+          vault[newKey] = entry;
+          key = newKey;
+        }
         if (!vault[key]) {
           vault[key] = { name: card.querySelector('.vault-card-title')?.textContent || key, tips: newTips, updatedAt: todayStr };
         } else {
@@ -570,7 +595,7 @@
           delete vault[key].preset; // 改过的预设就是自己的口诀了
         }
         app().saveVault(vault);
-        showToast(L('已更新「' + vault[key].name + '」教学要领', 'Updated cues for "' + vault[key].name + '"'));
+        showToast(L('已保存「' + vault[key].name + '」', 'Saved "' + vault[key].name + '"'));
         renderVaultList();
       };
     });
