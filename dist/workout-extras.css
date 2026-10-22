@@ -177,6 +177,8 @@ html[data-lang="en"] .muscle-area-name { padding-top:0; }
 .match-item:active { border-color:var(--green); }
 /* 动作示范（宝典封面） */
 .vault-demo { width:56px; height:56px; border-radius:12px; }
+.vault-card-top:has(.vault-demo) { grid-template-columns:84px 1fr; }
+.vault-card-top .vault-demo { width:84px; height:112px; }
 .vault-demo .video-thumb-time { left:3px; bottom:3px; padding:0 4px; font-size:9px; }
 .video-actions { grid-template-columns:1fr 1fr 1fr; }
 .video-actions #demoVideo.is-demo { border-color:var(--green); color:var(--green); }
