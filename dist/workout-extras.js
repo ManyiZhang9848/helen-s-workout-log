@@ -18,17 +18,6 @@
     'calves':'calves',
     'forearms':'forearms'
   };
-  const muscleShapes = {
-    'chest':['CHEST'],'pectorals':['CHEST'],'serratus anterior':['CHEST'],
-    'back':['UPPER_BACK'],'lats':['UPPER_BACK'],'upper back':['UPPER_BACK'],'middle back':['UPPER_BACK'],
-    'lower back':['LOWER_BACK'],'spine':['LOWER_BACK'],'traps':['TRAPEZIUS'],
-    'legs':['QUADRICEPS','HAMSTRING'],'quadriceps':['QUADRICEPS'],'quads':['QUADRICEPS'],'hamstrings':['HAMSTRING'],'adductors':['ADDUCTOR'],
-    'glutes':['GLUTEAL'],'abductors':['ABDUCTORS'],
-    'shoulders':['FRONT_DELTOIDS','BACK_DELTOIDS'],'delts':['FRONT_DELTOIDS','BACK_DELTOIDS'],'levator scapulae':['TRAPEZIUS'],
-    'biceps':['BICEPS'],'triceps':['TRICEPS'],
-    'core':['ABS','OBLIQUES'],'abs':['ABS','OBLIQUES'],'abdominals':['ABS','OBLIQUES'],'waist':['ABS','OBLIQUES'],
-    'calves':['CALVES','LEFT_SOLEUS','RIGHT_SOLEUS'],'forearms':['FOREARM']
-  };
   const equipmentZh = {'barbell':'杠铃','dumbbell':'哑铃','cable':'绳索','leverage machine':'器械','smith machine':'史密斯机','body weight':'自重','kettlebell':'壶铃','band':'弹力带','ez barbell':'曲杆','wheel roller':'健腹轮','trap bar':'六角杠铃','rope':'战绳/绳索','assisted':'辅助器械','medicine ball':'药球/健身球'};
   const equipmentEn = {'barbell':'Barbell','dumbbell':'Dumbbell','cable':'Cable','leverage machine':'Machine','smith machine':'Smith machine','body weight':'Body weight','kettlebell':'Kettlebell','band':'Band','ez barbell':'EZ bar','wheel roller':'Ab wheel','trap bar':'Trap bar','rope':'Rope','assisted':'Assisted','medicine ball':'Medicine ball'};
   const equipment = Object.fromEntries(Object.keys(equipmentZh).map(key => [key, I18N.term(equipmentZh[key], equipmentEn[key])]));
@@ -38,41 +27,111 @@
   function matchExercise(ex) {
     return catalog.find(item => item.id === ex.catalogId) || catalog.find(item => clean(item.zh) === clean(ex.name) || clean(item.name) === clean(ex.name) || item.id === aliases[ex.name]);
   }
-  // 一个动作可以练多个部位：muscleGroup 存成逗号分隔的部位，如 "legs,glutes"；空字符串表示按动作库自动识别
+  // ---------- 细分肌肉 ----------
+  // 每块肌肉：中英文名、所属大肌群（宝典分类、动作库筛选用）、选择器里的分区、在人体图上对应的部位。
+  // parts: [视图, 部位 slug, 路径下标（省略 = 整块）, 裁切（'upper' / 'lower' 只点亮上半或下半）]
+  // 人体图里肩、臀本来就分成前后 / 上下几块路径；胸只有一整块，按高度切成上胸和中下胸。
+  const MUSCLES = {
+    upper_chest: { zh:'上胸', en:'Upper chest', group:'chest', area:'chest', parts:[['front','chest',null,'upper']] },
+    mid_chest:   { zh:'中下胸', en:'Mid/lower chest', group:'chest', area:'chest', parts:[['front','chest',null,'lower']] },
+    front_delt:  { zh:'前束', en:'Front delt', group:'shoulders', area:'shoulders', parts:[['front','deltoids',[1,3]]] },
+    side_delt:   { zh:'中束', en:'Side delt', group:'shoulders', area:'shoulders', parts:[['front','deltoids',[0,2]]] },
+    rear_delt:   { zh:'后束', en:'Rear delt', group:'shoulders', area:'shoulders', parts:[['back','deltoids']] },
+    lats:        { zh:'背阔肌', en:'Lats', group:'back', area:'back', parts:[['back','upper-back']] },
+    traps:       { zh:'斜方肌', en:'Traps', group:'back', area:'back', parts:[['front','trapezius'],['back','trapezius']] },
+    lower_back:  { zh:'下背', en:'Lower back', group:'back', area:'back', parts:[['back','lower-back']] },
+    biceps:      { zh:'二头', en:'Biceps', group:'biceps', area:'arms', parts:[['front','biceps']] },
+    triceps:     { zh:'三头', en:'Triceps', group:'triceps', area:'arms', parts:[['front','triceps'],['back','triceps']] },
+    forearms:    { zh:'前臂', en:'Forearms', group:'forearms', area:'arms', parts:[['front','forearm'],['back','forearm']] },
+    abs:         { zh:'腹肌', en:'Abs', group:'core', area:'core', parts:[['front','abs']] },
+    obliques:    { zh:'腹斜肌', en:'Obliques', group:'core', area:'core', parts:[['front','obliques']] },
+    glute_med:   { zh:'臀中肌', en:'Glute med', group:'glutes', area:'glutes', parts:[['back','gluteal',[0,3]]] },
+    glute_max:   { zh:'臀大肌', en:'Glute max', group:'glutes', area:'glutes', parts:[['back','gluteal',[1,2]]] },
+    quads:       { zh:'股四头', en:'Quads', group:'legs', area:'legs', parts:[['front','quadriceps']] },
+    hamstrings:  { zh:'腘绳肌', en:'Hamstrings', group:'legs', area:'legs', parts:[['back','hamstring']] },
+    adductors:   { zh:'内收肌', en:'Adductors', group:'legs', area:'legs', parts:[['front','adductors'],['back','adductors']] },
+    calves:      { zh:'小腿', en:'Calves', group:'calves', area:'legs', parts:[['front','calves'],['front','tibialis'],['back','calves']] }
+  };
+  const AREAS = [['chest','胸','Chest'],['shoulders','肩','Shoulders'],['back','背','Back'],['arms','手臂','Arms'],['core','核心','Core'],['glutes','臀','Glutes'],['legs','腿','Legs']];
+  const CHEST_SPLIT_Y = 362; // 人体图里胸肌路径的 y 范围约 319–433，上面约 40% 算上胸
+  const GROUP_DEFAULT = { chest:['mid_chest'], back:['lats'], legs:['quads','hamstrings'], glutes:['glute_max'], shoulders:['side_delt'], biceps:['biceps'], triceps:['triceps'], core:['abs'], calves:['calves'], forearms:['forearms'] };
+  const muscleName = key => I18N.term(MUSCLES[key].zh, MUSCLES[key].en);
+  const parseMuscles = value => String(value || '').split(',').map(key => key.trim()).filter(key => MUSCLES[key]);
   const parseGroups = value => String(value || '').split(',').map(key => key.trim()).filter(key => groupsZh[key]);
-  // 动作库每个动作只标了一个主要部位；深蹲、硬拉、弓步、腿举这类下肢复合动作同时算腿和臀
-  const LOWER_BODY_COMPOUND = /squat|lunge|deadlift|leg press|split squat|step-up|hip thrust|glute bridge|good morning|hack|sumo/i;
-  function catalogGroups(m) {
+  const uniqueGroups = keys => keys.map(key => MUSCLES[key].group).filter((group, index, list) => list.indexOf(group) === index);
+  // 按动作库的目标肌和动作名推断具体练到哪几块肌肉
+  function autoMuscles(m) {
     if (!m) return [];
-    const list = [];
-    const add = key => { if (key && groupsZh[key] && !list.includes(key)) list.push(key); };
-    add(m.group); add(muscleGroups[m.target]);
-    if (LOWER_BODY_COMPOUND.test(m.name)) { add('legs'); add('glutes'); }
-    return list;
+    const name = m.name.toLowerCase(), out = [];
+    const add = (...keys) => keys.forEach(key => { if (MUSCLES[key] && !out.includes(key)) out.push(key); });
+    const has = re => re.test(name);
+    switch (m.target) {
+      case 'pectorals': add(has(/incline/) ? 'upper_chest' : 'mid_chest'); break;
+      case 'serratus anterior': add('mid_chest'); break;
+      case 'delts':
+        if (has(/rear|reverse fly|face pull|y raise/)) add('rear_delt');
+        else if (has(/lateral|side raise|upright row/)) add('side_delt');
+        else if (has(/front raise|front plate/)) add('front_delt');
+        else if (has(/press|arnold|military|push/)) add('front_delt', 'side_delt');
+        else add('side_delt');
+        break;
+      case 'lats': add('lats'); break;
+      case 'upper back': add('lats'); if (has(/shrug|face pull|high row|upright/)) add('traps'); break;
+      case 'traps': case 'levator scapulae': add('traps'); break;
+      case 'spine': add('lower_back'); break;
+      case 'biceps': add('biceps'); if (has(/hammer|reverse|zottman/)) add('forearms'); break;
+      case 'triceps': add('triceps'); break;
+      case 'forearms': add('forearms'); break;
+      case 'abs': add(has(/twist|oblique|side|russian|wood ?chop|windshield|rotation/) ? 'obliques' : 'abs'); break;
+      case 'abductors': add('glute_med'); break;
+      case 'adductors': add('adductors'); break;
+      case 'quads': add('quads'); break;
+      case 'hamstrings': add('hamstrings'); break;
+      case 'calves': add('calves'); break;
+      case 'glutes': add(has(/abduct|clam|side lying|lateral walk|fire hydrant|side kick|side step/) ? 'glute_med' : 'glute_max'); break;
+    }
+    // 下肢复合动作：除了目标肌，同时发力的主要肌肉也算上
+    if (has(/squat|lunge|leg press|split|step-up|step up|hack|pistol/)) add('quads', 'glute_max');
+    if (has(/deadlift|good morning|romanian|stiff.leg/)) add('hamstrings', 'glute_max');
+    if (has(/sumo/)) add('adductors');
+    if (has(/^barbell deadlift$/)) add('lower_back');
+    if (!out.length && GROUP_DEFAULT[m.group]) add(...GROUP_DEFAULT[m.group]);
+    return out;
   }
-  function exerciseGroups(ex) {
-    const own = parseGroups(ex.muscleGroup);
-    return own.length ? own : catalogGroups(matchExercise(ex));
+  const catalogGroups = m => uniqueGroups(autoMuscles(m));
+  // 动作练到的肌肉：自己选过的优先；旧数据只记了大肌群（如「腿,臀」），就在该肌群里取自动识别的那几块
+  function exerciseMuscleKeys(ex) {
+    const own = parseMuscles(ex.muscles);
+    if (own.length) return own;
+    const auto = autoMuscles(matchExercise(ex));
+    const legacy = parseGroups(ex.muscleGroup);
+    if (!legacy.length) return auto;
+    const out = [];
+    legacy.forEach(group => {
+      const inGroup = auto.filter(key => MUSCLES[key].group === group);
+      (inGroup.length ? inGroup : GROUP_DEFAULT[group] || []).forEach(key => { if (!out.includes(key)) out.push(key); });
+    });
+    return out;
   }
-  function exerciseMuscles(ex) {
-    const keys = exerciseGroups(ex);
-    return Object.keys(muscleGroups).filter(key => keys.includes(muscleGroups[key]));
+  const exerciseGroups = ex => uniqueGroups(exerciseMuscleKeys(ex));
+  // 选了具体肌肉，同时更新大肌群字段，宝典分类和旧逻辑照常能用；全部取消就回到自动识别
+  function setExerciseMuscles(ex, keys) {
+    ex.muscles = keys.join(',');
+    ex.muscleGroup = uniqueGroups(keys).join(',');
   }
-  // 部位多选：一排可点的标签，再点一次取消
-  function muscleChips(selected) {
-    return '<div class="muscle-chips">' + Object.keys(groupsZh).map(key => '<button type="button" class="muscle-chip' + (selected.includes(key) ? ' active' : '') + '" data-group="' + key + '" aria-pressed="' + selected.includes(key) + '">' + escapeHtml(groups[key]) + '</button>').join('') + '</div>';
+  function muscleSummary(exercises) {
+    const muscles = new Set(); let unknown = 0;
+    exercises.forEach(ex => { const keys = exerciseMuscleKeys(ex); if (!keys.length) unknown++; keys.forEach(key => muscles.add(key)); });
+    return { muscles, keys: Object.keys(MUSCLES).filter(key => muscles.has(key)), unknown };
+  }
+  // 肌肉选择器：按身体分区一行一行排，点一下选中，再点取消，可以多选
+  function musclePicker(selected) {
+    return AREAS.map(([area, zh, en]) => '<div class="muscle-area"><span class="muscle-area-name">' + escapeHtml(L(zh, en)) + '</span><div class="muscle-chips">' + Object.keys(MUSCLES).filter(key => MUSCLES[key].area === area).map(key => '<button type="button" class="muscle-chip' + (selected.includes(key) ? ' active' : '') + '" data-muscle="' + key + '" aria-pressed="' + selected.includes(key) + '">' + escapeHtml(muscleName(key)) + '</button>').join('') + '</div></div>').join('');
   }
   function bindMuscleChips(root, current, onChange) {
     root.querySelectorAll('.muscle-chip').forEach(chip => {
-      chip.onclick = () => { const now = current(); const key = chip.dataset.group; onChange(now.includes(key) ? now.filter(k => k !== key) : [...now, key]); };
+      chip.onclick = () => { const now = current(); const key = chip.dataset.muscle; onChange(now.includes(key) ? now.filter(k => k !== key) : [...now, key]); };
     });
-  }
-  function muscleSummary(exercises) {
-    const shapes = new Set(), keys = new Set(); let unknown = 0;
-    exercises.forEach(ex => { const muscles = exerciseMuscles(ex); if(!muscles.length) unknown++;
-      muscles.forEach(m => { (muscleShapes[m] || []).forEach(shape=>shapes.add(shape)); if(groups[muscleGroups[m]])keys.add(muscleGroups[m]); });
-    });
-    return {shapes,keys:[...keys],unknown};
   }
   const optionList = (values, label) => '<option value="">'+label+'</option>'+Object.entries(values).map(([key,value])=>'<option value="'+key+'">'+value+'</option>').join('');
   document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog" id="exerciseLibrary"><header class="extra-header"><h2>'+L('3D动作库','3D Exercise Library')+'</h2><button class="extra-close" id="closeLibrary" aria-label="'+L('关闭动作库','Close library')+'">×</button></header><div class="library-controls"><input id="librarySearch" type="search" placeholder="'+L('搜索动作，例如：卧推、深蹲、bench press','Search, e.g. bench press, squat, 卧推')+'" aria-label="'+L('搜索动作','Search exercises')+'"><div class="library-filters"><select id="libraryMuscle" aria-label="'+L('按肌群筛选','Filter by muscle')+'">'+optionList(groups,L('全部肌群','All muscles'))+'</select><select id="libraryEquipment" aria-label="'+L('按器械筛选','Filter by equipment')+'">'+optionList(equipment,L('全部器械','All equipment'))+'</select></div><p class="library-status" id="libraryStatus"></p><button class="extra-secondary" id="libraryCustom">'+L('＋ 自己填写动作','＋ Enter my own exercise')+'</button></div><div id="libraryList" class="library-list"></div><footer class="library-footer">'+L('动作库由 ','Exercise data from ')+'<a href="https://github.com/hasaneyldrm/exercises-dataset" target="_blank" rel="noopener">ExerciseDB (exercises-dataset)</a>'+L(' 提供，3D 白模动图版权归 ',' · 3D animations © ')+'<a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym Visual</a>'+L(' 所有。','. ')+'<a href="OPEN-SOURCE-LICENSES.txt" target="_blank">'+L('开源许可','Open-source licenses')+'</a></footer></dialog><dialog class="extra-dialog" id="posterDialog"><header class="extra-header"><h2>'+L('训练打卡长图','Workout Poster')+'</h2><button class="extra-close" id="closePoster" aria-label="'+L('关闭打卡图','Close poster')+'">×</button></header><div class="poster-controls"><label>'+L('显示名称','Display name')+'<input id="posterName" maxlength="24" placeholder="'+L('我的训练','My Workout')+'"></label></div><img id="posterPreview" class="poster-preview" alt="'+L('训练打卡长图，包含肌群分布和动作明细','Workout poster with muscle map and exercise details')+'" title="'+L('点击可全屏放大','Tap to view full screen')+'"><p class="poster-hint">'+L('点一下图片可全屏放大查看','Tap the image to view full screen')+'</p><div class="poster-actions"><a class="extra-primary" id="downloadPoster" download="workout.png">'+L('保存图片','Save image')+'</a><button class="extra-secondary" id="sharePoster">'+L('分享图片','Share image')+'</button></div><p class="poster-note" id="posterNote"></p><div class="poster-zoom" id="posterZoom"><button class="poster-zoom-close" id="posterZoomClose" aria-label="'+L('关闭放大预览','Close preview')+'">×</button><img id="posterZoomImg" alt="'+L('训练打卡长图放大预览','Workout poster, full screen')+'"></div></dialog>');
@@ -158,15 +217,19 @@
     const loadBtn = $('loadMoreExercises');
     if (loadBtn) loadBtn.onclick = () => { libraryLimit += 20; renderLibrary(); };
   }
+  const openPickers = new Set(); // 展开着选择器的动作，卡片重绘后保持展开
   function addMuscleControls() {
     document.querySelectorAll('#exerciseList [data-exercise]').forEach(card=>{
       const ex=app().getState().current.exercises.find(item=>item.id===card.dataset.exercise);if(!ex)return;
       const row=document.createElement('div');row.className='muscle-edit';
       const paint=()=>{
-        const own=parseGroups(ex.muscleGroup), selected=exerciseGroups(ex);
-        const hint=own.length?L('已手动选择','Picked by you'):selected.length?L('按动作自动识别，可多选修改','Auto-detected · tap to change'):L('未识别，请选择部位（可多选）','Not recognized — pick muscles');
-        row.innerHTML='<div class="muscle-edit-head"><span>'+L('训练部位','Muscles')+'</span><span class="muscle-edit-hint">'+hint+'</span></div>'+muscleChips(selected);
-        bindMuscleChips(row,()=>exerciseGroups(ex),next=>{ex.muscleGroup=next.join(',');saveState();paint();});
+        const keys=exerciseMuscleKeys(ex), open=openPickers.has(ex.id);
+        const picked=parseMuscles(ex.muscles).length>0||parseGroups(ex.muscleGroup).length>0;
+        row.innerHTML='<div class="muscle-edit-head"><span>'+L('训练部位','Muscles')+'</span><button type="button" class="muscle-toggle">'+(open?L('完成','Done'):L('修改','Edit'))+'</button></div>'+
+          '<div class="muscle-summary'+(keys.length?'':' empty')+'">'+(keys.length?escapeHtml(keys.map(muscleName).join(' · '))+(picked?'':'<span class="muscle-auto">'+L('自动识别','auto')+'</span>'):escapeHtml(L('未识别，点「修改」选择练到的肌肉','Not recognized — tap Edit to pick muscles')))+'</div>'+
+          (open?'<div class="muscle-picker">'+musclePicker(keys)+'</div>':'');
+        row.querySelector('.muscle-toggle').onclick=()=>{if(open)openPickers.delete(ex.id);else openPickers.add(ex.id);paint();};
+        bindMuscleChips(row,()=>exerciseMuscleKeys(ex),next=>{setExerciseMuscles(ex,next);saveState();paint();});
       };
       paint();card.appendChild(row);
       card.querySelector('[data-field="name"]').addEventListener('input',()=>{delete ex.catalogId;paint();});
@@ -197,8 +260,8 @@
     $('posterMuscleFields').querySelectorAll('[data-poster-muscle]').forEach(field=>{
       const index=Number(field.dataset.posterMuscle), ex=posterSession.exercises[index];
       const paint=()=>{
-        field.innerHTML='<span class="poster-muscle-name">'+escapeHtml(ex.name)+'</span>'+muscleChips(exerciseGroups(ex));
-        bindMuscleChips(field,()=>exerciseGroups(ex),next=>{ex.muscleGroup=next.join(',');session.exercises[index].muscleGroup=ex.muscleGroup;saveState();paint();buildPoster();});
+        field.innerHTML='<span class="poster-muscle-name">'+escapeHtml(ex.name)+'</span><div class="muscle-picker">'+musclePicker(exerciseMuscleKeys(ex))+'</div>';
+        bindMuscleChips(field,()=>exerciseMuscleKeys(ex),next=>{setExerciseMuscles(ex,next);setExerciseMuscles(session.exercises[index],next);saveState();paint();buildPoster();});
       };
       paint();
     });
@@ -207,15 +270,9 @@
   $('posterName').addEventListener('input',()=>{localStorage.setItem('workout-poster-name',$('posterName').value);buildPoster();});
   function drawFemaleBody(ctx,active,x,y,width,height,side) {
     const model = window.WORKOUT_FEMALE_BODY[side];
-    const mapping = {
-      chest:['CHEST'], neck:['NECK'], trapezius:['TRAPEZIUS'],
-      deltoids:[side==='front'?'FRONT_DELTOIDS':'BACK_DELTOIDS'],
-      biceps:['BICEPS'], triceps:['TRICEPS'], forearm:['FOREARM'],
-      abs:['ABS'], obliques:['OBLIQUES'], 'upper-back':['UPPER_BACK'],
-      'lower-back':['LOWER_BACK'], gluteal:['GLUTEAL','ABDUCTORS'],
-      adductors:['ADDUCTOR'], quadriceps:['QUADRICEPS'], hamstring:['HAMSTRING'],
-      calves:['CALVES','LEFT_SOLEUS','RIGHT_SOLEUS'], tibialis:['CALVES']
-    };
+    // 这一面要点亮的部位：[slug, 路径下标或 null, 裁切或 null]
+    const lit = [];
+    active.forEach(key => (MUSCLES[key]?.parts || []).forEach(([view, slug, indices, clip]) => { if (view === side) lit.push([slug, indices || null, clip || null]); }));
     const [vx,vy,vw,vh] = model.viewBox;
     const scale = Math.min(width/vw,height/vh);
     ctx.save();
@@ -234,9 +291,18 @@
         ctx.fillStyle='#737b84';ctx.beginPath();ctx.ellipse(cx,30,31,35,-0.12,0,Math.PI*2);ctx.fill();
         return;
       }
-      ctx.fillStyle=(mapping[part.slug]||[]).some(key=>active.has(key))?'#62d47c':
-        part.slug==='head'?'#343940':'#59616b';
+      ctx.fillStyle=part.slug==='head'?'#343940':'#59616b';
       part.paths.forEach(path=>ctx.fill(new Path2D(path)));
+      part.paths.forEach((path,index)=>{
+        const hits=lit.filter(([slug,indices])=>slug===part.slug&&(!indices||indices.includes(index)));
+        if(!hits.length)return;
+        const clips=hits.map(hit=>hit[2]);
+        ctx.fillStyle='#62d47c';
+        if(clips.includes(null)||(clips.includes('upper')&&clips.includes('lower'))){ctx.fill(new Path2D(path));return;}
+        ctx.save();ctx.beginPath();
+        if(clips.includes('upper'))ctx.rect(vx,vy,vw,CHEST_SPLIT_Y-vy);else ctx.rect(vx,CHEST_SPLIT_Y,vw,vy+vh-CHEST_SPLIT_Y);
+        ctx.clip();ctx.fill(new Path2D(path));ctx.restore();
+      });
     });
     ctx.restore();
   }
@@ -246,26 +312,26 @@
     const model=window.WORKOUT_FEMALE_BODY[side];
     const [vx,vy,vw,vh]=model.viewBox, scale=Math.min(bw/vw,bh/vh);
     const labels=side==='front'?[
-      ['上胸','Upper chest',['CHEST'],270,340,'left',87],
-      ['中下胸','Lower chest',['CHEST'],265,395,'left',121],
-      ['二头','Biceps',['BICEPS'],185,430,'left',174],
-      ['腹部','Abs',['ABS','OBLIQUES'],290,540,'left',237],
-      ['股四头','Quads',['QUADRICEPS'],245,810,'left',321],
-      ['前束','Front delt',['FRONT_DELTOIDS'],425,325,'right',73],
-      ['中束','Side delt',['FRONT_DELTOIDS'],453,355,'right',108],
-      ['前臂','Forearm',['FOREARM'],500,540,'right',193],
-      ['内收肌','Adductors',['ADDUCTOR'],352,805,'right',278],
-      ['小腿','Calves',['CALVES'],380,1160,'right',370]
+      ['上胸','Upper chest',['upper_chest'],270,340,'left',87],
+      ['中下胸','Mid/lower chest',['mid_chest'],265,395,'left',121],
+      ['二头','Biceps',['biceps'],185,430,'left',174],
+      ['腹肌','Abs',['abs','obliques'],290,540,'left',237],
+      ['股四头','Quads',['quads'],245,810,'left',321],
+      ['前束','Front delt',['front_delt'],425,325,'right',73],
+      ['中束','Side delt',['side_delt'],453,355,'right',108],
+      ['前臂','Forearm',['forearms'],500,540,'right',193],
+      ['内收肌','Adductors',['adductors'],352,805,'right',278],
+      ['小腿','Calves',['calves'],380,1160,'right',370]
     ]:[
-      ['后束','Rear delt',['BACK_DELTOIDS'],1008,333,'left',93],
-      ['三头','Triceps',['TRICEPS'],995,440,'left',154],
-      ['下背','Low back',['LOWER_BACK'],1100,550,'left',227],
-      ['斜方肌','Traps',['TRAPEZIUS'],1180,345,'right',73],
-      ['背部','Lats',['UPPER_BACK'],1190,455,'right',141],
-      ['臀部上','Glute med',['GLUTEAL'],1180,640,'right',211],
-      ['臀部下','Glute max',['GLUTEAL'],1190,715,'right',252],
-      ['腘绳肌','Hamstrings',['HAMSTRING'],1200,850,'right',322],
-      ['小腿','Calves',['CALVES'],1200,1120,'right',383]
+      ['后束','Rear delt',['rear_delt'],1008,333,'left',93],
+      ['三头','Triceps',['triceps'],995,440,'left',154],
+      ['下背','Low back',['lower_back'],1100,550,'left',227],
+      ['斜方肌','Traps',['traps'],1180,345,'right',73],
+      ['背阔肌','Lats',['lats'],1190,455,'right',141],
+      ['臀中肌','Glute med',['glute_med'],1180,640,'right',211],
+      ['臀大肌','Glute max',['glute_max'],1190,715,'right',252],
+      ['腘绳肌','Hamstrings',['hamstrings'],1200,850,'right',322],
+      ['小腿','Calves',['calves'],1200,1120,'right',383]
     ];
     const labelFont='-apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif';
     const mode=I18N.mode;
@@ -309,7 +375,7 @@
     text(session.date?session.date+' '+weekday:L('日期未填写','No date'),42,69,25,'#d5dad6');
     card(36,110,888,620);text($('posterName').value.trim()||L('我的训练','My Workout'),76,169,32,'#f2f5f1',true);
     text(posterDraft?L('本次训练草稿','Draft'):L('已保存的训练','Saved session'),76,205,20,'#8f9993');
-    drawLabeledBody(ctx,summary.shapes,50,235,'front');drawLabeledBody(ctx,summary.shapes,390,235,'back');
+    drawLabeledBody(ctx,summary.muscles,50,235,'front');drawLabeledBody(ctx,summary.muscles,390,235,'back');
     text(L('正面','Front'),192,692,20,'#8f9993');text(L('背面','Back'),532,692,20,'#8f9993');
     // 右侧数据栏的说明文字：对照模式中文下面再写一行小号英文
     const statLabel=(zh,en,y)=>text(L(zh,en),755,y,mode==='zh'?20:18,'#8f9993');
@@ -319,7 +385,7 @@
     text(session.duration?session.duration+L(' 分',' min'):notRecorded,755,400,30,'#6fe38a',true);statLabel('训练时长','Duration',437);
     text(session.calories?session.calories+' kcal':notRecorded,755,518,26,'#6fe38a',true);statLabel('热量（估算）','Calories (est.)',555);
     text(exercises.length+L(' 个动作',exercises.length===1?' exercise':' exercises'),755,629,24,'#6fe38a',true);
-    const muscleText=summary.keys.length?(mode==='zh'?'训练部位：'+summary.keys.map(key=>groupsZh[key]).join('、'):'Muscles: '+summary.keys.map(key=>groups[key]).join(', ')):L('训练部位未标注','No muscles tagged');
+    const muscleText=summary.keys.length?(mode==='zh'?'训练部位：'+summary.keys.map(key=>MUSCLES[key].zh).join('、'):'Muscles: '+summary.keys.map(muscleName).join(', ')):L('训练部位未标注','No muscles tagged');
     const muscleLines=textLines(muscleText,864,23).slice(0,2);muscleLines.forEach((line,index)=>text(line,48,(muscleLines.length>1?765:779)+index*30,23,'#75df8d'));
     let y=820;
     const detailHeight=rows.reduce((height,row)=>height+rowHeight(row),0)+(notes.length?notes.length*34+85:0);
