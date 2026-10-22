@@ -60,7 +60,11 @@
   function referencedIds() {
     const ids = new Set();
     allExercises().forEach(({ ex }) => (ex.videos || []).forEach(video => ids.add(video.id)));
-    Object.values(app().loadVault()).forEach(entry => { if (entry && entry.demoVideoId) ids.add(entry.demoVideoId); });
+    Object.values(app().loadVault()).forEach(entry => {
+      if (!entry) return;
+      if (entry.demoVideoId) ids.add(entry.demoVideoId);
+      (entry.videos || []).forEach(video => ids.add(video.id)); // 直接加在宝典里的视频
+    });
     return ids;
   }
   // 动作示范视频记在动作宝典里：vault[key].demoVideoId。动作库里没有的自定义动作，就靠它当示范。
@@ -87,6 +91,7 @@
 
   // ---------- 小工具 ----------
   const formatSize = bytes => bytes >= 1048576 ? (bytes / 1048576).toFixed(bytes >= 104857600 ? 0 : 1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB';
+  const localDay = time => { const d = new Date(time); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
   const clock = time => { const d = new Date(time); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
   function thumbsHtml(videos, withDate) {
     return videos.map(({ video, date }) => '<button type="button" class="video-thumb" data-video-id="' + escapeHtml(video.id) + '" aria-label="' + L('播放动作视频', 'Play video') + '"><video muted playsinline preload="metadata"></video><span class="video-thumb-time">' + escapeHtml((withDate && date ? date.slice(5) + ' ' : '') + clock(video.createdAt)) + '</span><span class="video-thumb-play" aria-hidden="true">▶</span></button>').join('');
@@ -168,8 +173,10 @@
       const video = (ex.videos || []).find(v => v.id === id);
       if (video) return { ex, video, date };
     }
-    const entry = Object.values(app().loadVault()).find(item => item.demoVideoId === id);
-    return entry ? { ex: { name: entry.name, catalogId: entry.catalogId }, video: { id, createdAt: Date.now() }, date: '' } : null;
+    const entry = Object.values(app().loadVault()).find(item => item.demoVideoId === id || (item.videos || []).some(v => v.id === id));
+    if (!entry) return null;
+    const video = (entry.videos || []).find(v => v.id === id) || { id, createdAt: Date.now() };
+    return { ex: { name: entry.name, catalogId: entry.catalogId }, video, date: localDay(video.createdAt) };
   }
   async function openPlayer(id) {
     const url = await videoUrl(id);
@@ -214,7 +221,13 @@
     allExercises().forEach(({ ex }) => { if (ex.videos) ex.videos = ex.videos.filter(v => v.id !== id); });
     saveState();
     const vault = app().loadVault();
-    if (Object.values(vault).some(entry => entry.demoVideoId === id)) { Object.values(vault).forEach(entry => { if (entry.demoVideoId === id) delete entry.demoVideoId; }); app().saveVault(vault); }
+    if (Object.values(vault).some(entry => entry.demoVideoId === id || (entry.videos || []).some(v => v.id === id))) {
+      Object.values(vault).forEach(entry => {
+        if (entry.demoVideoId === id) delete entry.demoVideoId;
+        if (entry.videos) entry.videos = entry.videos.filter(v => v.id !== id);
+      });
+      app().saveVault(vault);
+    }
     await deleteVideo(id).catch(() => {});
     forgetUrl(id);
     dialog.close();
@@ -224,6 +237,48 @@
   };
 
   // ---------- 动作宝典：按动作看历次视频 ----------
+  // 宝典「编辑」里直接添加视频：不用先在训练里录，从相册选或现场拍都行
+  function addVaultUpload(card, key) {
+    const area = card.querySelector('.vault-tip-edit-area');
+    if (!area || area.querySelector('.vault-video-add')) return;
+    const label = document.createElement('label');
+    label.className = 'video-add vault-video-add';
+    label.innerHTML = icon('video') + '<span>' + L('添加动作视频', 'Add a video') + '</span><input type="file" accept="video/*" hidden>';
+    area.querySelector('.vault-edit-actions').before(label);
+    label.querySelector('input').addEventListener('change', async event => {
+      const file = event.target.files && event.target.files[0];
+      event.target.value = '';
+      if (!file) return;
+      if (file.size > 500 * 1048576 && !window.confirm(L('这段视频有 ' + formatSize(file.size) + '，会占用较多手机空间。仍然保存吗？', 'This video is ' + formatSize(file.size) + ' and takes a lot of space. Save anyway?'))) return;
+      // 记下正在编辑的名字和要领：保存视频后列表会重绘，再把它们填回去
+      const draftName = card.querySelector('.vault-edit-name')?.value, draftTips = card.querySelector('.vault-edit-textarea')?.value;
+      const id = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+      pendingIds.add(id);
+      showToast(L('正在保存视频…', 'Saving video…'));
+      try {
+        await putVideo({ id, blob: file, createdAt: Date.now(), type: file.type || 'video/mp4' });
+        const vault = app().loadVault();
+        if (!vault[key]) return;
+        vault[key].videos = [...(vault[key].videos || []), { id, createdAt: Date.now(), size: file.size, type: file.type || 'video/mp4' }];
+        const firstDemo = !vault[key].demoVideoId;
+        if (firstDemo) vault[key].demoVideoId = id;
+        app().saveVault(vault);
+        if (window.renderVaultList) window.renderVaultList();
+        const fresh = document.querySelector('#vaultList .vault-card[data-vault-key="' + CSS.escape(key) + '"]');
+        if (fresh) {
+          fresh.querySelector('[data-action="edit-tip"]')?.click();
+          if (draftName !== undefined) fresh.querySelector('.vault-edit-name').value = draftName;
+          if (draftTips !== undefined) fresh.querySelector('.vault-edit-textarea').value = draftTips;
+          fresh.scrollIntoView({ block: 'nearest' });
+        }
+        showToast(firstDemo ? L('视频已添加，并设为动作示范', 'Video added and set as the demo') : L('视频已添加（' + formatSize(file.size) + '）', 'Video added (' + formatSize(file.size) + ')'));
+      } catch (error) {
+        showToast(L('保存失败：手机空间可能不够了，删掉一些旧视频再试', 'Could not save — storage may be full. Delete old videos and try again.'));
+      } finally {
+        pendingIds.delete(id);
+      }
+    });
+  }
   window.onVaultListRendered = list => {
     const vault = app().loadVault();
     const clean = app().cleanName;
@@ -244,7 +299,8 @@
           hydrateThumbs(card.querySelector('.vault-card-top'));
         }
       }
-      const clips = [];
+      addVaultUpload(card, card.dataset.vaultKey);
+      const clips = (entry.videos || []).map(video => ({ video, date: localDay(video.createdAt) }));
       exercises.forEach(({ ex, date }) => {
         if (!(ex.videos || []).length) return;
         if (clean(ex.name) === card.dataset.vaultKey || (entry.catalogId && ex.catalogId === entry.catalogId)) ex.videos.forEach(video => clips.push({ video, date }));

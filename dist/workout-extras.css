@@ -183,3 +183,4 @@ html[data-lang="en"] .muscle-area-name { padding-top:0; }
 /* 生成的长图预览 */
 .image-result-wrap { padding:12px 16px; max-height:calc(var(--dialog-max-h) - 190px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .image-result-wrap img { display:block; width:100%; border-radius:12px; background:#121214; }
+.vault-video-add { display:flex; margin:8px 0 0; min-height:40px; font-size:13px; }
