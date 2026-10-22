@@ -1,0 +1,218 @@
+// 动作视频：每个动作可以录 / 选一段视频看姿势。
+// 视频文件存在本机 IndexedDB（只在这台设备的这个 App 里，不上传、不进导出备份），
+// 训练记录里只存视频的 id 和时间：exercise.videos = [{ id, createdAt, size, type }]。
+(() => {
+  'use strict';
+  const app = () => window.workoutApp;
+  const DB_NAME = 'workout-media';
+  const STORE = 'videos';
+  const urlCache = new Map();   // id → object URL，重绘动作卡片时复用，不重复读文件
+  const pendingIds = new Set(); // 正在写入、还没记进训练记录的视频，清理时跳过
+
+  // ---------- IndexedDB ----------
+  let dbPromise = null;
+  function openDb() {
+    if (!dbPromise) dbPromise = new Promise((resolve, reject) => {
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = () => request.result.createObjectStore(STORE, { keyPath: 'id' });
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    return dbPromise;
+  }
+  async function withStore(mode, action) {
+    const db = await openDb();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, mode);
+      const request = action(tx.objectStore(STORE));
+      tx.oncomplete = () => resolve(request ? request.result : undefined);
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+  }
+  const putVideo = record => withStore('readwrite', store => store.put(record));
+  const getVideo = id => withStore('readonly', store => store.get(id));
+  const deleteVideo = id => withStore('readwrite', store => store.delete(id));
+  const allVideoIds = () => withStore('readonly', store => store.getAllKeys());
+
+  async function videoUrl(id) {
+    if (urlCache.has(id)) return urlCache.get(id);
+    const record = await getVideo(id).catch(() => null);
+    if (!record || !record.blob) return '';
+    const url = URL.createObjectURL(record.blob);
+    urlCache.set(id, url);
+    return url;
+  }
+  function forgetUrl(id) {
+    const url = urlCache.get(id);
+    if (url) URL.revokeObjectURL(url);
+    urlCache.delete(id);
+  }
+
+  // ---------- 训练记录里的视频引用 ----------
+  function allExercises() {
+    const state = app().getState();
+    const list = [];
+    (state.current.exercises || []).forEach(ex => list.push({ ex, date: state.current.date || '' }));
+    (state.sessions || []).forEach(session => (session.exercises || []).forEach(ex => list.push({ ex, date: session.date || '' })));
+    return list;
+  }
+  function referencedIds() {
+    const ids = new Set();
+    allExercises().forEach(({ ex }) => (ex.videos || []).forEach(video => ids.add(video.id)));
+    return ids;
+  }
+  // 删掉动作、清空草稿、删除训练后，没人引用的视频文件一并清掉，免得占手机空间
+  let pruneTimer = 0;
+  function schedulePrune() {
+    clearTimeout(pruneTimer);
+    pruneTimer = setTimeout(async () => {
+      try {
+        const keep = referencedIds();
+        const ids = await allVideoIds();
+        for (const id of ids) if (!keep.has(id) && !pendingIds.has(id)) { await deleteVideo(id); forgetUrl(id); }
+      } catch (error) {}
+    }, 1500);
+  }
+
+  // ---------- 小工具 ----------
+  const formatSize = bytes => bytes >= 1048576 ? (bytes / 1048576).toFixed(bytes >= 104857600 ? 0 : 1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB';
+  const clock = time => { const d = new Date(time); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+  function thumbsHtml(videos, withDate) {
+    return videos.map(({ video, date }) => '<button type="button" class="video-thumb" data-video-id="' + escapeHtml(video.id) + '" aria-label="' + L('播放动作视频', 'Play video') + '"><video muted playsinline preload="metadata"></video><span class="video-thumb-time">' + escapeHtml((withDate && date ? date.slice(5) + ' ' : '') + clock(video.createdAt)) + '</span><span class="video-thumb-play" aria-hidden="true">▶</span></button>').join('');
+  }
+  // 缩略图：读出视频后跳到 0.1 秒，iOS 才会显示第一帧
+  function hydrateThumbs(root) {
+    root.querySelectorAll('.video-thumb').forEach(async thumb => {
+      const url = await videoUrl(thumb.dataset.videoId);
+      const video = thumb.querySelector('video');
+      if (!url) { thumb.classList.add('missing'); thumb.title = L('这段视频不在这台设备上', 'This video is not on this device'); return; }
+      if (video && !video.src) video.src = url + '#t=0.1';
+    });
+    root.querySelectorAll('.video-thumb').forEach(thumb => { thumb.onclick = () => openPlayer(thumb.dataset.videoId); });
+  }
+
+  // ---------- 动作卡片：录 / 选视频 ----------
+  function addVideoRows() {
+    const state = app().getState();
+    document.querySelectorAll('#exerciseList [data-exercise]').forEach(card => {
+      const ex = state.current.exercises.find(item => item.id === card.dataset.exercise);
+      if (!ex) return;
+      const videos = (ex.videos || []).map(video => ({ video, date: state.current.date }));
+      const row = document.createElement('div');
+      row.className = 'video-row';
+      // 不加 capture：iPhone 会弹出「拍摄视频 / 照片图库 / 选取文件」，既能现场拍，也能选朋友帮忙拍的
+      row.innerHTML = '<label class="video-add">' + icon('video') + '<span>' + L('录动作视频', 'Record form video') + '</span><input type="file" accept="video/*" hidden></label>' + (videos.length ? '<div class="video-clips">' + thumbsHtml(videos, false) + '</div>' : '');
+      row.querySelector('input').addEventListener('change', event => {
+        const file = event.target.files && event.target.files[0];
+        event.target.value = '';
+        if (file) saveClip(ex, file);
+      });
+      card.appendChild(row);
+      hydrateThumbs(row);
+    });
+    schedulePrune();
+  }
+  async function saveClip(ex, file) {
+    if (file.size > 500 * 1048576 && !window.confirm(L('这段视频有 ' + formatSize(file.size) + '，会占用较多手机空间。仍然保存吗？', 'This video is ' + formatSize(file.size) + ' and takes a lot of space. Save anyway?'))) return;
+    const id = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    pendingIds.add(id);
+    showToast(L('正在保存视频…', 'Saving video…'));
+    try {
+      await putVideo({ id, blob: file, createdAt: Date.now(), type: file.type || 'video/mp4' });
+      ex.videos = [...(ex.videos || []), { id, createdAt: Date.now(), size: file.size, type: file.type || 'video/mp4' }];
+      saveState();
+      render();
+      showToast(L('视频已保存在本机（' + formatSize(file.size) + '）', 'Video saved on this device (' + formatSize(file.size) + ')'));
+    } catch (error) {
+      showToast(L('保存失败：手机空间可能不够了，删掉一些旧视频再试', 'Could not save — storage may be full. Delete old videos and try again.'));
+    } finally {
+      pendingIds.delete(id);
+    }
+  }
+
+  // ---------- 播放器 ----------
+  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog video-dialog" id="videoDialog"><header class="extra-header"><h2 id="videoDialogTitle">' + L('动作视频', 'Form video') + '</h2><button class="extra-close" id="closeVideo" aria-label="' + L('关闭', 'Close') + '">×</button></header><div class="video-player-wrap"><video id="videoPlayer" controls playsinline></video></div><div class="video-speed" role="group" aria-label="' + L('播放速度', 'Playback speed') + '"><button type="button" data-speed="0.25">0.25×</button><button type="button" data-speed="0.5">0.5×</button><button type="button" data-speed="1" class="active">1×</button></div><div class="video-actions"><button type="button" class="extra-secondary" id="shareVideo">' + icon('share') + ' ' + L('保存 / 分享', 'Save / share') + '</button><button type="button" class="extra-secondary video-delete" id="deleteVideo">' + L('删除视频', 'Delete video') + '</button></div><p class="video-note">' + L('视频只存在这台手机的 App 里，不包含在「导出备份」中；想长期保留请点「保存 / 分享」存到相册。', 'Videos stay in this app on this phone and are not in “Export backup”. Use “Save / share” to keep a copy in Photos.') + '</p></dialog>');
+  const dialog = $('videoDialog'), player = $('videoPlayer');
+  let playingId = '';
+  $('closeVideo').onclick = () => dialog.close();
+  dialog.addEventListener('close', () => { player.pause(); player.removeAttribute('src'); player.load(); });
+  dialog.addEventListener('click', event => { if (event.target === dialog) { const box = dialog.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close(); } });
+  dialog.querySelectorAll('[data-speed]').forEach(button => button.onclick = () => {
+    player.playbackRate = Number(button.dataset.speed);
+    dialog.querySelectorAll('[data-speed]').forEach(b => b.classList.toggle('active', b === button));
+  });
+  function findVideo(id) {
+    for (const { ex, date } of allExercises()) {
+      const video = (ex.videos || []).find(v => v.id === id);
+      if (video) return { ex, video, date };
+    }
+    return null;
+  }
+  async function openPlayer(id) {
+    const url = await videoUrl(id);
+    if (!url) { showToast(L('这段视频不在这台设备上', 'This video is not on this device')); return; }
+    const found = findVideo(id);
+    playingId = id;
+    $('videoDialogTitle').textContent = found ? found.ex.name + ' · ' + (found.date ? found.date.slice(5) + ' ' : '') + clock(found.video.createdAt) : L('动作视频', 'Form video');
+    player.src = url;
+    player.playbackRate = 1;
+    dialog.querySelectorAll('[data-speed]').forEach(b => b.classList.toggle('active', b.dataset.speed === '1'));
+    if (!dialog.open) dialog.showModal();
+    player.play().catch(() => {});
+  }
+  // iPhone 的分享面板里有「存储视频」，可以存进相册，也能直接发给教练
+  $('shareVideo').onclick = async () => {
+    const record = await getVideo(playingId).catch(() => null);
+    if (!record) return;
+    const ext = (record.type || '').includes('quicktime') ? 'mov' : 'mp4';
+    const file = new File([record.blob], 'workout-video.' + ext, { type: record.type || 'video/mp4' });
+    if (navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); } catch (error) { if (error.name !== 'AbortError') showToast(L('分享失败，请稍后再试', 'Could not share — try again')); }
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url; link.download = file.name; document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  };
+  $('deleteVideo').onclick = async () => {
+    if (!playingId || !window.confirm(L('删除这段动作视频？删除后无法恢复。', 'Delete this video? This can’t be undone.'))) return;
+    const id = playingId;
+    allExercises().forEach(({ ex }) => { if (ex.videos) ex.videos = ex.videos.filter(v => v.id !== id); });
+    saveState();
+    await deleteVideo(id).catch(() => {});
+    forgetUrl(id);
+    dialog.close();
+    render();
+    if ($('vaultModal')?.open && window.renderVaultList) window.renderVaultList();
+    showToast(L('视频已删除', 'Video deleted'));
+  };
+
+  // ---------- 动作宝典：按动作看历次视频 ----------
+  window.onVaultListRendered = list => {
+    const vault = app().loadVault();
+    const clean = app().cleanName;
+    const exercises = allExercises();
+    list.querySelectorAll('.vault-card').forEach(card => {
+      const entry = vault[card.dataset.vaultKey];
+      if (!entry) return;
+      const clips = [];
+      exercises.forEach(({ ex, date }) => {
+        if (!(ex.videos || []).length) return;
+        if (clean(ex.name) === card.dataset.vaultKey || (entry.catalogId && ex.catalogId === entry.catalogId)) ex.videos.forEach(video => clips.push({ video, date }));
+      });
+      if (!clips.length) return;
+      clips.sort((a, b) => b.video.createdAt - a.video.createdAt);
+      const box = document.createElement('div');
+      box.className = 'vault-videos';
+      box.innerHTML = '<div class="vault-videos-head">' + icon('video') + ' ' + L('动作视频', 'Form videos') + ' · ' + clips.length + '</div><div class="video-clips">' + thumbsHtml(clips.slice(0, 8), true) + '</div>';
+      card.querySelector('.vault-tip-box')?.after(box);
+      hydrateThumbs(box);
+    });
+  };
+
+  const previousRenderExercises = renderExercises;
+  renderExercises = function () { previousRenderExercises(); addVideoRows(); };
+  render();
+})();
