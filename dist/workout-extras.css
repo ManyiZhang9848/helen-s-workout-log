@@ -27,8 +27,14 @@
 .library-footer { padding:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; line-height:1.6; }
 .library-footer a { color:var(--green); }
 .library-status { color:var(--muted); margin:0; font-size:14px; }
-.muscle-edit { margin-top:12px; display:flex; align-items:center; gap:10px; font-size:13px; color:var(--muted); }
-.muscle-edit select { flex:1; min-width:0; padding:10px; background:#1a1a1d; color:var(--text); border:1px solid var(--line); border-radius:10px; font-size:14px; }
+.muscle-edit { margin-top:12px; display:grid; gap:8px; font-size:13px; color:var(--muted); }
+.muscle-edit-head { display:flex; justify-content:space-between; align-items:baseline; gap:10px; }
+.muscle-edit-hint { color:#787880; font-size:11px; text-align:right; }
+.muscle-chips { display:flex; flex-wrap:wrap; gap:6px; }
+.muscle-chip { min-height:34px !important; padding:5px 12px; border:1px solid var(--line); border-radius:999px; background:#1a1a1d; color:var(--muted); font-size:13px; font-weight:750; }
+.muscle-chip.active { border-color:var(--green); background:var(--green-dark); color:var(--green); }
+.poster-muscle-field { display:grid; gap:8px; }
+.poster-muscle-name { color:var(--text); font-size:14px; font-weight:750; }
 .poster-controls { padding:16px; display:grid; gap:12px; }
 .poster-controls label { display:grid; gap:7px; color:var(--muted); font-size:14px; }
 .poster-controls input { padding:12px; border:1px solid var(--line); background:var(--panel); border-radius:12px; font-size:16px; }

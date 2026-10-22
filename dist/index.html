@@ -117,6 +117,7 @@
          再窄下去后面四列会被压到 68px 以内，「总容量」的 5 位数就会被裁。
          提前到 640px 就折成两列（手机端媒体查询在 560px 处会再覆盖一次，取值相同）。 */
       @media (max-width:640px) { .meta-grid { grid-template-columns:repeat(2,1fr); } }
+      .meta-hint { display:block; margin-top:-6px; color:var(--muted); font-size:11px; line-height:1.4; }
       .meta-link { display:block; margin:0 0 8px; padding:4px 0; border:0; background:transparent; color:var(--green); font-size:12px; font-weight:750; }
       /* 从主屏幕打开时状态栏是透明的：给它垫一条和页面同色的底，滚动时内容不会透到时间和信号下面 */
       body::before { content:""; position:fixed; inset:0 0 auto; height:env(safe-area-inset-top, 0px); z-index:50; background:var(--bg); }
@@ -306,7 +307,7 @@
         <div class="section-head" data-page-node-id="PGugAPksWhLdfHAiJU9oOr"><h2 id="session-heading" data-en="This Session" data-page-node-id="FknXrkEcP3DlkBNh2Hn1rb">本次训练</h2><button type="button" class="draft-pill-btn" id="openDraftModal" aria-label="查看草稿详情与管理" data-en-aria="View and manage draft"><span class="draft-dot"></span><span id="draftStatus">草稿会自动存在本机</span> <span style="font-size:10px; opacity:.7;">▾</span></button></div>
         <div class="meta-grid" data-page-node-id="KCC1yfbZp97zkEUD2nrr61">
           <div class="meta-field" data-page-node-id="60fSyQfXVon1zBHoqrSW73"><label for="dateInput" data-en="Date" data-page-node-id="kuoeccf3t3ln65HPsLdSrf">训练日期</label><input id="dateInput" type="date" data-page-node-id="B473UpmRivcD3VF81J176w" /></div>
-          <div class="meta-field" data-page-node-id="prxTJdziDQPbkD125Z9hXF"><label for="durationInput" data-en="Duration" data-page-node-id="T1PCehENFwxIAgYOTjljaN">训练时长</label><input id="durationInput" inputmode="numeric" placeholder="分钟" data-en-ph="min" data-page-node-id="Cy692lhaQWvGG1KZMe1n8x" /></div>
+          <div class="meta-field" data-page-node-id="prxTJdziDQPbkD125Z9hXF"><label for="durationInput" data-en="Duration" data-page-node-id="T1PCehENFwxIAgYOTjljaN">训练时长</label><input id="durationInput" inputmode="numeric" placeholder="分钟" data-en-ph="min" data-page-node-id="Cy692lhaQWvGG1KZMe1n8x" /><span class="meta-hint" id="durationHint"></span></div>
           <div class="meta-field" data-page-node-id="oGSO9SGS1YpO42AUfgAVrn"><label for="weightInput" data-en="Body weight (kg)" data-page-node-id="lGKcRyGksAfZP2V9Adm1C1">体重（kg）</label><input id="weightInput" inputmode="decimal" placeholder="如 65" data-en-ph="e.g. 65" aria-label="体重，用于估算热量，会一直记住" data-en-aria="Body weight, used to estimate calories; remembered" data-page-node-id="tRw4cVh1KeDHS9HPiAncgJ" /></div>
           <div class="meta-field" data-page-node-id="MJaRz9nw1C7eupnW0DlC5B"><label for="caloriesInput" data-en="Calories (est.)" data-page-node-id="UBjFvnGkIGDkCU7HvEyxFN">热量（估算）</label><input id="caloriesInput" inputmode="numeric" placeholder="自动计算" data-en-ph="Auto" readonly aria-label="热量消耗（按体重与时长估算）" data-en-aria="Calories burned (estimated from body weight and duration)" data-page-node-id="XtL4OrQ199gWZWUKbsBdc9" /></div>
           <div class="meta-field" data-page-node-id="Dp0YjxfRAsuO2tcP8uUpY3"><label data-en="Total volume" data-page-node-id="mbrzJe71DFOl0REDvQx6WT">总容量</label><input id="volumeDisplay" value="—" readonly aria-label="总容量（只算已打 ✓ 的组）" data-en-aria="Total volume (ticked sets only)" data-page-node-id="n84KbOTXN047et3XErEwDP" /></div>
@@ -590,7 +591,31 @@
       // 日历、「第 N 次」编号和默认分享的"最新一次"都不会错。同一天的按保存先后（sort 是稳定排序）。
       function sortSessions(list) { return list.sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))); }
       function loadState() { try { const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)); if (!saved || !saved.current || !Array.isArray(saved.sessions)) return blankState(); saved.aiSummary = saved.aiSummary || ''; saved.profile = saved.profile || { weight: '' }; sortSessions(saved.sessions); return saved; } catch { return blankState(); } }
-      function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); renderDraftStatus(); }
+      function saveState() { startTimerIfNeeded(); localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); renderDraftStatus(); }
+      // 训练时长自动计时：从开始记录的那一刻算起，点「完成本次训练」时结束。
+      // 手动改过时长就以手动为准；把时长清空即恢复自动计时。
+      const AUTO_DURATION_MAX = 360; // 超过 6 小时多半是忘了点完成，不再自动累加
+      function startTimerIfNeeded() { if (state.current && !state.current.startedAt && draftHasContent()) state.current.startedAt = Date.now(); }
+      function elapsedMinutes() { return state.current.startedAt ? Math.max(1, Math.round((Date.now() - state.current.startedAt) / 60000)) : 0; }
+      function tickDuration() {
+        const minutes = elapsedMinutes();
+        if (minutes && !state.current.durationManual && minutes <= AUTO_DURATION_MAX && String(minutes) !== String(state.current.duration)) {
+          state.current.duration = String(minutes);
+          if (document.activeElement !== $('durationInput')) $('durationInput').value = state.current.duration;
+          updateCaloriesOnly();
+        }
+        renderDurationHint();
+      }
+      function renderDurationHint() {
+        const node = $('durationHint');
+        if (!node) return;
+        const start = state.current.startedAt ? new Date(state.current.startedAt) : null;
+        const clock = start ? String(start.getHours()).padStart(2, '0') + ':' + String(start.getMinutes()).padStart(2, '0') : '';
+        node.textContent = state.current.durationManual ? L('手动填写 · 清空后恢复自动计时', 'Manual · clear it to auto-time')
+          : !start ? L('开始记录后自动计时', 'Starts timing when you begin logging')
+          : elapsedMinutes() > AUTO_DURATION_MAX ? L('已超过 6 小时，请手动填写', 'Over 6 hours — enter it manually')
+          : L(clock + ' 开始 · 自动计时', 'Auto · started ' + clock);
+      }
       function loadAiConfig() { try { const saved = JSON.parse(localStorage.getItem(AI_CONFIG_KEY)); return { ...DEFAULT_AI_CONFIG, ...saved, remote:{ ...DEFAULT_AI_CONFIG.remote, ...(saved?.remote || {}) }, local:{ ...DEFAULT_AI_CONFIG.local, ...(saved?.local || {}) } }; } catch { return JSON.parse(JSON.stringify(DEFAULT_AI_CONFIG)); } }
       function saveAiConfig() { localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(aiConfig)); }
       function activeAiConfig() { return aiConfig[aiConfig.mode]; }
@@ -630,7 +655,7 @@
         const count = state.sessions.length;
         $('goalNumber').textContent = count + ' / 20'; $('goalMeter').style.width = Math.min(count / 20 * 100, 100) + '%'; $('goalCaption').textContent = count ? L('还差 ' + Math.max(20 - count, 0) + ' 次真实训练', Math.max(20 - count, 0) + ' more real sessions to go') : L('完成一次真实训练后，再记为 1 次', 'Each real session you finish counts as 1');
         $('dateInput').value = state.current.date || ''; $('durationInput').value = state.current.duration || ''; $('weightInput').value = state.profile.weight || ''; $('caloriesInput').value = estimatedCalories(); $('notesInput').value = state.current.notes || ''; $('volumeDisplay').value = totalVolume() ? totalVolume().toLocaleString() + ' kg' : '—';
-        renderExercises(); renderHistory(); renderAi(); renderReport(); renderDraftStatus(); updateVaultBadge(); renderBackupCaption(); renderWeightField();
+        renderExercises(); renderHistory(); renderAi(); renderReport(); renderDraftStatus(); updateVaultBadge(); renderBackupCaption(); renderWeightField(); tickDuration();
       }
       // 体重比较私密：填过一次就收起输入框，只用来估算热量；需要时点「修改体重」再展开
       let editingWeight = false;
@@ -822,6 +847,7 @@
         showToast(L('草稿已清空，可以重新开始', 'Draft cleared — start fresh'));
       }
       function finishWorkout() {
+        tickDuration(); // 结束时间就是点「完成本次训练」的这一刻
         syncMeta();
         const validExercises = state.current.exercises.filter(exercise => exercise.name.trim() || exercise.sets.some(set => set.weight || set.reps));
         if (!validExercises.length) { showToast(L('先添加至少一个真实动作', 'Add at least one real exercise first')); return; }
@@ -1526,7 +1552,7 @@
       // 请求浏览器把本站存储标记为"持久"，降低被系统自动清理的概率（不支持或被拒绝都不影响使用）
       navigator.storage?.persist?.().catch(() => {});
 
-      $('addExercise').addEventListener('click', addExercise); $('clearDraft').addEventListener('click', clearDraft); $('finishWorkout').addEventListener('click', finishWorkout); $('generateSummary').addEventListener('click', generateSummary); $('testLocal').addEventListener('click', testLocal); document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setAiMode(button.dataset.mode))); document.querySelectorAll('[data-report-view]').forEach(button => button.addEventListener('click', () => { reportView = button.dataset.reportView; renderReport(); })); $('reportPrevMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() - 1, 1); renderReportHistory(); }); $('reportNextMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() + 1, 1); renderReportHistory(); }); $('reportTodayMonth').addEventListener('click', () => { reportMonth = new Date(); renderReportHistory(); }); $('aiEndpoint').addEventListener('input', syncAiConfig); $('aiModel').addEventListener('input', syncAiConfig); ['dateInput','durationInput','caloriesInput','notesInput'].forEach(id => $(id).addEventListener('input', syncMeta)); $('durationInput').addEventListener('input', updateCaloriesOnly); $('weightInput').addEventListener('input', () => { state.profile.weight = $('weightInput').value; updateCaloriesOnly(); }); $('weightInput').addEventListener('blur', () => { editingWeight = false; renderWeightField(); }); $('editWeightBtn').addEventListener('click', () => { editingWeight = true; renderWeightField(); $('weightInput').focus(); });
+      $('addExercise').addEventListener('click', addExercise); $('clearDraft').addEventListener('click', clearDraft); $('finishWorkout').addEventListener('click', finishWorkout); $('generateSummary').addEventListener('click', generateSummary); $('testLocal').addEventListener('click', testLocal); document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setAiMode(button.dataset.mode))); document.querySelectorAll('[data-report-view]').forEach(button => button.addEventListener('click', () => { reportView = button.dataset.reportView; renderReport(); })); $('reportPrevMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() - 1, 1); renderReportHistory(); }); $('reportNextMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() + 1, 1); renderReportHistory(); }); $('reportTodayMonth').addEventListener('click', () => { reportMonth = new Date(); renderReportHistory(); }); $('aiEndpoint').addEventListener('input', syncAiConfig); $('aiModel').addEventListener('input', syncAiConfig); ['dateInput','durationInput','caloriesInput','notesInput'].forEach(id => $(id).addEventListener('input', syncMeta)); $('durationInput').addEventListener('input', () => { state.current.durationManual = Boolean($('durationInput').value.trim()); updateCaloriesOnly(); if (state.current.durationManual) renderDurationHint(); else tickDuration(); }); $('durationInput').addEventListener('blur', () => { if (!state.current.durationManual) $('durationInput').value = state.current.duration || ''; }); setInterval(tickDuration, 30000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tickDuration(); }); $('weightInput').addEventListener('input', () => { state.profile.weight = $('weightInput').value; updateCaloriesOnly(); }); $('weightInput').addEventListener('blur', () => { editingWeight = false; renderWeightField(); }); $('editWeightBtn').addEventListener('click', () => { editingWeight = true; renderWeightField(); $('weightInput').focus(); });
       if (typeof document.modelContext?.registerTool === 'function') { document.modelContext.registerTool({ name:'read_workout_log', title:'读取训练日志', description:'读取当前训练草稿和已保存的真实训练记录。', inputSchema:{type:'object',properties:{},additionalProperties:false}, annotations:{readOnlyHint:true,untrustedContentHint:true}, execute(){ return { completedCount:state.sessions.length, current:state.current, sessions:state.sessions.slice(0,10) }; } }); document.modelContext.registerTool({ name:'save_workout_session', title:'保存训练记录', description:'保存一条由用户提供的真实训练记录。不会创建预设动作或虚构数据。', inputSchema:{type:'object',properties:{date:{type:'string'},duration:{type:'string'},calories:{type:'string'},notes:{type:'string'},exercises:{type:'array'}},required:['exercises'],additionalProperties:false}, annotations:{readOnlyHint:false,untrustedContentHint:false}, execute(input){ if(!Array.isArray(input.exercises)||!input.exercises.length) throw new Error('至少需要一个真实动作'); const session={date:String(input.date||''),duration:String(input.duration||''),calories:String(input.calories||''),notes:String(input.notes||''),volume:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).reduce((a,set)=>a+(Number(set.weight)||0)*(Number(set.reps)||0),0),0),completedSets:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).filter(set=>set.done).length,0),exercises:input.exercises}; state.sessions.unshift(session); sortSessions(state.sessions); saveState(); render(); return {status:'saved',completedCount:state.sessions.length}; } }); }
       seedVaultPresets();
       renderAiConfig(); render(); checkAndRenderViewer();
