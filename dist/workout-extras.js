@@ -38,15 +38,34 @@
   function matchExercise(ex) {
     return catalog.find(item => item.id === ex.catalogId) || catalog.find(item => clean(item.zh) === clean(ex.name) || clean(item.name) === clean(ex.name) || item.id === aliases[ex.name]);
   }
-  function exerciseMuscles(ex) {
-    if (ex.muscleGroup) return Object.keys(muscleGroups).filter(key => muscleGroups[key] === ex.muscleGroup);
-    const m = matchExercise(ex);
+  // 一个动作可以练多个部位：muscleGroup 存成逗号分隔的部位，如 "legs,glutes"；空字符串表示按动作库自动识别
+  const parseGroups = value => String(value || '').split(',').map(key => key.trim()).filter(key => groupsZh[key]);
+  // 动作库每个动作只标了一个主要部位；深蹲、硬拉、弓步、腿举这类下肢复合动作同时算腿和臀
+  const LOWER_BODY_COMPOUND = /squat|lunge|deadlift|leg press|split squat|step-up|hip thrust|glute bridge|good morning|hack|sumo/i;
+  function catalogGroups(m) {
     if (!m) return [];
     const list = [];
-    if (m.group) list.push(m.group);
-    if (m.target && !list.includes(m.target)) list.push(m.target);
-    if (m.primaryMuscles) list.push(...m.primaryMuscles);
+    const add = key => { if (key && groupsZh[key] && !list.includes(key)) list.push(key); };
+    add(m.group); add(muscleGroups[m.target]);
+    if (LOWER_BODY_COMPOUND.test(m.name)) { add('legs'); add('glutes'); }
     return list;
+  }
+  function exerciseGroups(ex) {
+    const own = parseGroups(ex.muscleGroup);
+    return own.length ? own : catalogGroups(matchExercise(ex));
+  }
+  function exerciseMuscles(ex) {
+    const keys = exerciseGroups(ex);
+    return Object.keys(muscleGroups).filter(key => keys.includes(muscleGroups[key]));
+  }
+  // 部位多选：一排可点的标签，再点一次取消
+  function muscleChips(selected) {
+    return '<div class="muscle-chips">' + Object.keys(groupsZh).map(key => '<button type="button" class="muscle-chip' + (selected.includes(key) ? ' active' : '') + '" data-group="' + key + '" aria-pressed="' + selected.includes(key) + '">' + escapeHtml(groups[key]) + '</button>').join('') + '</div>';
+  }
+  function bindMuscleChips(root, current, onChange) {
+    root.querySelectorAll('.muscle-chip').forEach(chip => {
+      chip.onclick = () => { const now = current(); const key = chip.dataset.group; onChange(now.includes(key) ? now.filter(k => k !== key) : [...now, key]); };
+    });
   }
   function muscleSummary(exercises) {
     const shapes = new Set(), keys = new Set(); let unknown = 0;
@@ -131,7 +150,7 @@
       const zh = zhNameOf(ex, customZhNames());
       const key = app().findVaultKey(vault, zh, ex.id);
       const prevTips = vault[key]?.tips || '';
-      const item={...app().blankExercise(),name:zh,catalogId:ex.id,muscleGroup:ex.group||muscleGroups[ex.target]||'',tips:prevTips};
+      const item={...app().blankExercise(),name:zh,catalogId:ex.id,muscleGroup:'',tips:prevTips};
       app().getState().current.exercises.push(item);saveState();library.close();render();
       showToast(prevTips ? L('已添加 ' + zh + '，已自动带出教学要领', 'Added ' + ex.name + ' with your saved cues') : L('已添加 ' + zh, 'Added ' + ex.name));
       const cards=document.querySelectorAll('[data-exercise]');cards[cards.length-1]?.scrollIntoView({block:'center',behavior:'smooth'});
@@ -142,12 +161,15 @@
   function addMuscleControls() {
     document.querySelectorAll('#exerciseList [data-exercise]').forEach(card=>{
       const ex=app().getState().current.exercises.find(item=>item.id===card.dataset.exercise);if(!ex)return;
-      const row=document.createElement('label');row.className='muscle-edit';row.innerHTML='<span>'+L('打卡图部位','Poster muscles')+'</span><select aria-label="'+L('打卡图肌群','Poster muscle group')+'">'+optionList(groups,L('按动作名称识别','Detect from name'))+'</select>';
-      const select=row.querySelector('select');select.value=ex.muscleGroup||'';
-      const matched=matchExercise(ex);
-      select.options[0].textContent=matched?L('自动','Auto')+' · '+exerciseMuscles({...ex,muscleGroup:''}).map(m=>groups[muscleGroups[m]]).filter((m,i,a)=>m&&a.indexOf(m)===i).join('、'):L('未识别 · 请选部位','Not recognized · pick one');
-      select.onchange=()=>{ex.muscleGroup=select.value;saveState();};card.appendChild(row);
-      card.querySelector('[data-field="name"]').addEventListener('input',()=>{delete ex.catalogId;select.options[0].textContent=matchExercise(ex)?L('自动识别肌群','Auto-detect muscles'):L('未识别 · 请选部位','Not recognized · pick one');});
+      const row=document.createElement('div');row.className='muscle-edit';
+      const paint=()=>{
+        const own=parseGroups(ex.muscleGroup), selected=exerciseGroups(ex);
+        const hint=own.length?L('已手动选择','Picked by you'):selected.length?L('按动作自动识别，可多选修改','Auto-detected · tap to change'):L('未识别，请选择部位（可多选）','Not recognized — pick muscles');
+        row.innerHTML='<div class="muscle-edit-head"><span>'+L('训练部位','Muscles')+'</span><span class="muscle-edit-hint">'+hint+'</span></div>'+muscleChips(selected);
+        bindMuscleChips(row,()=>exerciseGroups(ex),next=>{ex.muscleGroup=next.join(',');saveState();paint();});
+      };
+      paint();card.appendChild(row);
+      card.querySelector('[data-field="name"]').addEventListener('input',()=>{delete ex.catalogId;paint();});
     });
   }
   const originalExercises=renderExercises;
@@ -171,8 +193,15 @@
     if(!session?.exercises?.length){showToast(L('先填写或保存一次训练','Fill in or save a session first'));return;}
     posterSession=JSON.parse(JSON.stringify(session));posterDraft=Boolean(draft);
     $('posterName').value=localStorage.getItem('workout-poster-name')||L('我的训练','My Workout');
-    $('posterMuscleFields').innerHTML=posterSession.exercises.map((ex,index)=>'<label>'+escapeHtml(ex.name)+'<select data-poster-muscle="'+index+'">'+optionList(groups,L('按动作库识别','Auto from library'))+'</select></label>').join('');
-    $('posterMuscleFields').querySelectorAll('select').forEach(select=>{const index=Number(select.dataset.posterMuscle);select.value=posterSession.exercises[index].muscleGroup||'';select.onchange=()=>{posterSession.exercises[index].muscleGroup=select.value;session.exercises[index].muscleGroup=select.value;saveState();buildPoster();};});
+    $('posterMuscleFields').innerHTML=posterSession.exercises.map((ex,index)=>'<div class="poster-muscle-field" data-poster-muscle="'+index+'"></div>').join('');
+    $('posterMuscleFields').querySelectorAll('[data-poster-muscle]').forEach(field=>{
+      const index=Number(field.dataset.posterMuscle), ex=posterSession.exercises[index];
+      const paint=()=>{
+        field.innerHTML='<span class="poster-muscle-name">'+escapeHtml(ex.name)+'</span>'+muscleChips(exerciseGroups(ex));
+        bindMuscleChips(field,()=>exerciseGroups(ex),next=>{ex.muscleGroup=next.join(',');session.exercises[index].muscleGroup=ex.muscleGroup;saveState();paint();buildPoster();});
+      };
+      paint();
+    });
     poster.showModal();buildPoster();
   }
   $('posterName').addEventListener('input',()=>{localStorage.setItem('workout-poster-name',$('posterName').value);buildPoster();});
@@ -313,10 +342,18 @@
     text(summary.unknown?L(summary.unknown+' 个动作未标注肌群 · 可在动作记录中选择部位',summary.unknown+' exercise(s) untagged — pick muscles in the log'):L('着色表示动作涉及的主要肌群，不代表刺激强度','Highlighted = main muscles involved, not intensity'),48,canvas.height-63,19,'#7e8982');
     text(L('训练日志 · 我的真实打卡','Workout Log · real check-ins'),48,canvas.height-28,18,'#7e8982');
     $('posterPreview').src=canvas.toDataURL('image/png');
-    $('posterNote').textContent=L('手机可长按图片保存，也可点击“保存图片”。肌群来自动作库或手动标注；热量沿用日志中的估算值。','On a phone, long-press the image to save it, or tap “Save image”. Muscles come from the exercise library or your tags; calories reuse the log’s estimate.');
+    $('posterNote').textContent=L('iPhone 点「保存图片」后选「存储图像」即可存进相册，也可以长按图片保存。训练部位可在上方「调整训练部位」里多选。','On iPhone, tap “Save image” then “Save Image” to put it in Photos, or long-press the image. Pick multiple muscles under “Adjust muscles” above.');
     posterBlob=null;$('sharePoster').disabled=true;$('downloadPoster').removeAttribute('href');
     canvas.toBlob(blob=>{if(ticket!==renderId||!blob)return;posterBlob=blob;if(posterUrl)URL.revokeObjectURL(posterUrl);posterUrl=URL.createObjectURL(blob);$('downloadPoster').href=posterUrl;$('downloadPoster').download=L('训练打卡-','workout-')+(session.date||L('未填写日期','no-date'))+'.png';$('sharePoster').disabled=false;},'image/png');
   }
+  // iOS 上 <a download> 只会打开一个 PNG 文件页面，存不进相册；手机上改用系统分享面板，里面有「存储图像」
+  $('downloadPoster').addEventListener('click',async event=>{
+    if(!posterBlob||!/iphone|ipad|android/i.test(navigator.userAgent))return;
+    const file=new File([posterBlob],$('downloadPoster').download||'workout.png',{type:'image/png'});
+    if(!navigator.canShare?.({files:[file]}))return;
+    event.preventDefault();
+    try{await navigator.share({files:[file]});}catch(error){if(error.name!=='AbortError')showToast(L('请长按上方图片，选择「存储到照片」','Long-press the image above and choose “Save to Photos”'));}
+  });
   $('sharePoster').onclick=async()=>{
     if(!posterBlob)return;const file=new File([posterBlob],L('训练打卡.png','workout.png'),{type:'image/png'});
     if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:L('我的训练打卡','My workout check-in')});}catch(error){if(error.name!=='AbortError')showToast(L('请点击保存图片，或长按图片保存','Tap “Save image”, or long-press the image'));}}
@@ -404,7 +441,8 @@
 
     let items = Object.entries(vault).map(([key, item]) => {
       const match = matchExercise({ name: item.name, catalogId: item.catalogId });
-      let groupKey = item.muscleGroup || (match ? (match.group || muscleGroups[match.target] || '') : '');
+      const groupKeys = parseGroups(item.muscleGroup).length ? parseGroups(item.muscleGroup) : catalogGroups(match);
+      const groupKey = groupKeys[0] || '';
       const equipKey = match ? (match.equipment || '') : '';
       const pr = prMap[key] || (item.catalogId && prMap[prKeyByCatalog[item.catalogId]]) || null;
       return {
@@ -417,7 +455,8 @@
         groupKey,
         // 预设动作：还没练过、口诀也没改过
         preset: Boolean(item.preset) && !pr,
-        groupLabel: groups[groupKey] || I18N.term('力量动作','Strength'),
+        groupKeys,
+        groupLabel: groupKeys.map(key => groups[key]).join(' · ') || I18N.term('力量动作','Strength'),
         equipLabel: equipment[equipKey] || equipKey || I18N.term('自由重量','Free weight'),
         pr: pr && pr.maxW > 0 ? pr : null
       };
@@ -434,8 +473,8 @@
     items = items.filter(item => {
       if (currentVaultGroup) {
         if (currentVaultGroup === 'arms') {
-          if (item.groupKey !== 'biceps' && item.groupKey !== 'triceps' && item.groupKey !== 'arms') return false;
-        } else if (item.groupKey !== currentVaultGroup) {
+          if (!item.groupKeys.some(key => key === 'biceps' || key === 'triceps' || key === 'forearms')) return false;
+        } else if (!item.groupKeys.includes(currentVaultGroup)) {
           return false;
         }
       }
