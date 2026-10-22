@@ -60,7 +60,17 @@
   function referencedIds() {
     const ids = new Set();
     allExercises().forEach(({ ex }) => (ex.videos || []).forEach(video => ids.add(video.id)));
+    Object.values(app().loadVault()).forEach(entry => { if (entry && entry.demoVideoId) ids.add(entry.demoVideoId); });
     return ids;
+  }
+  // 动作示范视频记在动作宝典里：vault[key].demoVideoId。动作库里没有的自定义动作，就靠它当示范。
+  function vaultKeyFor(ex) { return app().findVaultKey(app().loadVault(), ex.name, ex.catalogId); }
+  function setDemoVideo(ex, id) {
+    const vault = app().loadVault();
+    const key = app().findVaultKey(vault, ex.name, ex.catalogId);
+    if (!vault[key]) vault[key] = { name: String(ex.name || '').trim(), tips: ex.tips || '', catalogId: ex.catalogId || '', muscleGroup: ex.muscleGroup || '', updatedAt: '' };
+    if (id) vault[key].demoVideoId = id; else delete vault[key].demoVideoId;
+    app().saveVault(vault);
   }
   // 删掉动作、清空草稿、删除训练后，没人引用的视频文件一并清掉，免得占手机空间
   let pruneTimer = 0;
@@ -122,8 +132,11 @@
       await putVideo({ id, blob: file, createdAt: Date.now(), type: file.type || 'video/mp4' });
       ex.videos = [...(ex.videos || []), { id, createdAt: Date.now(), size: file.size, type: file.type || 'video/mp4' }];
       saveState();
+      // 动作库里没有的自定义动作：第一段视频自动设为动作示范
+      const autoDemo = !ex.catalogId && String(ex.name || '').trim() && !app().loadVault()[vaultKeyFor(ex)]?.demoVideoId;
+      if (autoDemo) setDemoVideo(ex, id);
       render();
-      showToast(L('视频已保存在本机（' + formatSize(file.size) + '）', 'Video saved on this device (' + formatSize(file.size) + ')'));
+      showToast(autoDemo ? L('视频已保存，并设为「' + ex.name + '」的动作示范', 'Saved and set as the demo for “' + ex.name + '”') : L('视频已保存在本机（' + formatSize(file.size) + '）', 'Video saved on this device (' + formatSize(file.size) + ')'));
     } catch (error) {
       showToast(L('保存失败：手机空间可能不够了，删掉一些旧视频再试', 'Could not save — storage may be full. Delete old videos and try again.'));
     } finally {
@@ -132,9 +145,17 @@
   }
 
   // ---------- 播放器 ----------
-  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog video-dialog" id="videoDialog"><header class="extra-header"><h2 id="videoDialogTitle">' + L('动作视频', 'Form video') + '</h2><button class="extra-close" id="closeVideo" aria-label="' + L('关闭', 'Close') + '">×</button></header><div class="video-player-wrap"><video id="videoPlayer" controls playsinline></video></div><div class="video-speed" role="group" aria-label="' + L('播放速度', 'Playback speed') + '"><button type="button" data-speed="0.25">0.25×</button><button type="button" data-speed="0.5">0.5×</button><button type="button" data-speed="1" class="active">1×</button></div><div class="video-actions"><button type="button" class="extra-secondary" id="shareVideo">' + icon('share') + ' ' + L('保存 / 分享', 'Save / share') + '</button><button type="button" class="extra-secondary video-delete" id="deleteVideo">' + L('删除视频', 'Delete video') + '</button></div><p class="video-note">' + L('视频只存在这台手机的 App 里，不包含在「导出备份」中；想长期保留请点「保存 / 分享」存到相册。', 'Videos stay in this app on this phone and are not in “Export backup”. Use “Save / share” to keep a copy in Photos.') + '</p></dialog>');
+  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog video-dialog" id="videoDialog"><header class="extra-header"><h2 id="videoDialogTitle">' + L('动作视频', 'Form video') + '</h2><button class="extra-close" id="closeVideo" aria-label="' + L('关闭', 'Close') + '">×</button></header><div class="video-player-wrap"><video id="videoPlayer" controls playsinline></video></div><div class="video-speed" role="group" aria-label="' + L('播放速度', 'Playback speed') + '"><button type="button" data-speed="0.25">0.25×</button><button type="button" data-speed="0.5">0.5×</button><button type="button" data-speed="1" class="active">1×</button></div><div class="video-actions"><button type="button" class="extra-secondary" id="shareVideo">' + icon('share') + ' ' + L('保存 / 分享', 'Save / share') + '</button><button type="button" class="extra-secondary" id="demoVideo"></button><button type="button" class="extra-secondary video-delete" id="deleteVideo">' + L('删除视频', 'Delete video') + '</button></div><p class="video-note">' + L('视频只存在这台手机的 App 里，不包含在「导出备份」中；想长期保留请点「保存 / 分享」存到相册。', 'Videos stay in this app on this phone and are not in “Export backup”. Use “Save / share” to keep a copy in Photos.') + '</p></dialog>');
   const dialog = $('videoDialog'), player = $('videoPlayer');
-  let playingId = '';
+  let playingId = '', playingExercise = null;
+  function paintDemoButton() {
+    const button = $('demoVideo');
+    button.hidden = !playingExercise;
+    if (!playingExercise) return;
+    const isDemo = app().loadVault()[vaultKeyFor(playingExercise)]?.demoVideoId === playingId;
+    button.innerHTML = isDemo ? '✓ ' + L('已是动作示范', 'Demo video') : L('设为动作示范', 'Set as demo');
+    button.classList.toggle('is-demo', isDemo);
+  }
   $('closeVideo').onclick = () => dialog.close();
   dialog.addEventListener('close', () => { player.pause(); player.removeAttribute('src'); player.load(); });
   dialog.addEventListener('click', event => { if (event.target === dialog) { const box = dialog.getBoundingClientRect(); if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close(); } });
@@ -147,7 +168,8 @@
       const video = (ex.videos || []).find(v => v.id === id);
       if (video) return { ex, video, date };
     }
-    return null;
+    const entry = Object.values(app().loadVault()).find(item => item.demoVideoId === id);
+    return entry ? { ex: { name: entry.name, catalogId: entry.catalogId }, video: { id, createdAt: Date.now() }, date: '' } : null;
   }
   async function openPlayer(id) {
     const url = await videoUrl(id);
@@ -155,6 +177,8 @@
     const found = findVideo(id);
     playingId = id;
     $('videoDialogTitle').textContent = found ? found.ex.name + ' · ' + (found.date ? found.date.slice(5) + ' ' : '') + clock(found.video.createdAt) : L('动作视频', 'Form video');
+    playingExercise = found ? found.ex : null;
+    paintDemoButton();
     player.src = url;
     player.playbackRate = 1;
     dialog.querySelectorAll('[data-speed]').forEach(b => b.classList.toggle('active', b.dataset.speed === '1'));
@@ -176,11 +200,21 @@
     link.href = url; link.download = file.name; document.body.appendChild(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  $('demoVideo').onclick = () => {
+    if (!playingExercise) return;
+    const isDemo = app().loadVault()[vaultKeyFor(playingExercise)]?.demoVideoId === playingId;
+    setDemoVideo(playingExercise, isDemo ? '' : playingId);
+    paintDemoButton();
+    if ($('vaultModal')?.open && window.renderVaultList) window.renderVaultList();
+    showToast(isDemo ? L('已取消动作示范', 'Demo removed') : L('已设为「' + playingExercise.name + '」的动作示范，在动作宝典里能看到', 'Set as the demo for “' + playingExercise.name + '” — see it in your playbook'));
+  };
   $('deleteVideo').onclick = async () => {
     if (!playingId || !window.confirm(L('删除这段动作视频？删除后无法恢复。', 'Delete this video? This can’t be undone.'))) return;
     const id = playingId;
     allExercises().forEach(({ ex }) => { if (ex.videos) ex.videos = ex.videos.filter(v => v.id !== id); });
     saveState();
+    const vault = app().loadVault();
+    if (Object.values(vault).some(entry => entry.demoVideoId === id)) { Object.values(vault).forEach(entry => { if (entry.demoVideoId === id) delete entry.demoVideoId; }); app().saveVault(vault); }
     await deleteVideo(id).catch(() => {});
     forgetUrl(id);
     dialog.close();
@@ -197,6 +231,19 @@
     list.querySelectorAll('.vault-card').forEach(card => {
       const entry = vault[card.dataset.vaultKey];
       if (!entry) return;
+      if (entry.demoVideoId) {
+        const media = card.querySelector('.vault-media-wrap');
+        if (media) {
+          const demo = document.createElement('button');
+          demo.type = 'button';
+          demo.className = 'video-thumb vault-demo';
+          demo.dataset.videoId = entry.demoVideoId;
+          demo.setAttribute('aria-label', L('播放动作示范', 'Play demo video'));
+          demo.innerHTML = '<video muted playsinline preload="metadata"></video><span class="video-thumb-time">' + L('示范', 'Demo') + '</span>';
+          media.replaceWith(demo);
+          hydrateThumbs(card.querySelector('.vault-card-top'));
+        }
+      }
       const clips = [];
       exercises.forEach(({ ex, date }) => {
         if (!(ex.videos || []).length) return;

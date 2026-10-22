@@ -1,4 +1,4 @@
-const CACHE_NAME = 'workout-cache-v20-muscles';
+const CACHE_NAME = 'workout-cache-v21-image-demo';
 // 动作库图片单独一个缓存：页面升级时不清空（图片内容基本不变），也不会把页面缓存撑大
 const MEDIA_CACHE = 'workout-media-v1';
 const MEDIA_LIMIT = 300;
@@ -12,6 +12,7 @@ const STATIC_ASSETS = [
   'workout-extras.css',
   'workout-extras.js',
   'workout-videos.js',
+  'vendor/html2canvas.min.js',
   'manifest.json',
   'icon.svg',
   'icon-180.png',

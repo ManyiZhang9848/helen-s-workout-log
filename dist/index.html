@@ -279,6 +279,9 @@
       .viewer-actions { display:flex; gap:10px; margin-top:24px; }
       .viewer-btn { flex:1; padding:13px 16px; border-radius:14px; font-size:14px; font-weight:850; text-align:center; cursor:pointer; }
       .viewer-btn-primary { background:var(--green); color:#102015; border:1px solid var(--green); }
+      .capturing .viewer-actions, .capturing .viewer-coach-card, .capturing .viewer-history-toggle { display:none !important; }
+      .capture-stamp { margin:0 0 14px; padding-top:10px; color:var(--muted); font-size:12px; }
+      .viewer-btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; }
       .viewer-btn-secondary { background:var(--panel-2); color:var(--text); border:1px solid var(--line); }
 
       @media (max-width:560px) { .app { padding:calc(22px + env(safe-area-inset-top, 0px)) max(14px, env(safe-area-inset-right, 0px)) 34px max(14px, env(safe-area-inset-left, 0px)); } .topbar { margin-bottom:28px; } .topbar-actions { gap:8px; } .share-trigger-btn { padding:6px 10px; font-size:12px; } .intro { display:block; } h1 { margin-bottom:12px; } .intro p { max-width:none; text-align:left; } .goal-card { align-items:flex-start; flex-direction:column; gap:12px; } .goal-meter { width:100%; } .report-card { padding:15px 12px; } .report-head { align-items:flex-start; flex-direction:column; gap:10px; } .report-switch { width:100%; } .report-switch button { flex:1; } .report-day { min-height:54px; } .report-day-volume { font-size:9px; } .meta-grid { grid-template-columns:repeat(2,1fr); gap:9px; margin-bottom:10px; } .meta-note { margin-bottom:28px; } .meta-field { padding:12px 11px; } .exercise { padding:16px 10px 13px; } .exercise-head { grid-template-columns:39px 1fr auto; gap:9px; } .exercise-index { width:39px; height:39px; border-radius:12px; } .exercise-name { font-size:18px; } .set-header,.set-row { grid-template-columns:25px 1fr 12px 1fr 44px; gap:6px; padding-left:4px; padding-right:4px; } .set-input { padding:12px 8px; } .set-header { font-size:11px; } .viewer-meta-grid { grid-template-columns:repeat(2,1fr); } .viewer-kpi-grid { grid-template-columns:repeat(2,1fr); } .viewer-pr-grid { grid-template-columns:1fr; } .share-actions { grid-template-columns:1fr; } .viewer-actions { flex-direction:column; } }
@@ -462,7 +465,7 @@
       </div>
     </dialog>
 
-    <link rel="stylesheet" href="workout-extras.css?v=20261022_muscles" data-page-node-id="xtV5QddAx3lujE2utp3aJu" />
+    <link rel="stylesheet" href="workout-extras.css?v=20261022_demo" data-page-node-id="xtV5QddAx3lujE2utp3aJu" />
     <script src="catalog-data.js"></script>
     <script src="vault-presets.js"></script>
     <script>
@@ -474,6 +477,7 @@
         eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
         edit: '<path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
         dumbbell: '<path d="M6 6v12M18 6v12M3 9.5v5M21 9.5v5M6 12h12"/>',
+        image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.5-3.5L8 21"/>',
         video: '<rect x="2" y="6" width="14" height="12" rx="2"/><path d="m16 10.5 6-3.5v10l-6-3.5"/>'
       };
       function icon(name) { return '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true">' + (ICON_PATHS[name] || '') + '</svg>'; }
@@ -1084,7 +1088,7 @@
         };
       }
 
-      function buildProgressShareData() {
+      function buildProgressShareData(full) {
         const stats = computeCumulativeStats(state.sessions);
         return {
           t: 'progress',
@@ -1105,14 +1109,15 @@
               ts: p.totalSets
             }))
           },
-          sessions: state.sessions.slice(0, 20).map(s => ({
+          sessions: (full ? state.sessions : state.sessions.slice(0, 20)).map(s => ({
             d: s.date || '',
             dur: s.duration || '',
             cal: s.calories || '',
             vol: s.volume || 0,
-            notes: String(s.notes || '').slice(0, 120),
+            notes: full ? String(s.notes || '') : String(s.notes || '').slice(0, 120),
             exCount: (s.exercises || []).length,
-            topEx: (s.exercises || []).map(e => e.name || '').filter(Boolean)
+            topEx: (s.exercises || []).map(e => e.name || '').filter(Boolean),
+            ...(full ? { ex: (s.exercises || []).map(e => ({ n: e.name || '', s: (e.sets || []).map(set => ({ w: set.weight || '', r: set.reps || '', d: Boolean(set.done) })) })) } : {})
           }))
         };
       }
@@ -1283,11 +1288,47 @@
       }
 
       // 查看页的数据全部来自分享链接，任何人都能伪造：文字一律 escapeHtml，数字一律 num() 后再拼进 HTML。
+      // 教练页生成长图：截图库只在用到时才加载，平时打开页面不受影响
+      async function loadHtml2canvas() {
+        if (window.html2canvas) return window.html2canvas;
+        await new Promise((resolve, reject) => { const script = document.createElement('script'); script.src = 'vendor/html2canvas.min.js'; script.onload = resolve; script.onerror = reject; document.head.appendChild(script); });
+        return window.html2canvas;
+      }
+      async function captureViewerImage(button) {
+        const container = $('viewerContent');
+        const label = button.innerHTML;
+        button.disabled = true; button.textContent = L('生成中…', 'Generating…');
+        // 截图前：展开所有训练明细，隐藏按钮和评语模板，顶部加一行导出日期
+        const closed = [...container.querySelectorAll('.viewer-history-details:not(.open)')];
+        closed.forEach(el => el.classList.add('open'));
+        container.classList.add('capturing');
+        const stamp = document.createElement('div');
+        stamp.className = 'capture-stamp';
+        stamp.textContent = L('训练日志 · 导出于 ', 'Workout Log · exported ') + localDateStr();
+        container.prepend(stamp);
+        try {
+          const html2canvas = await loadHtml2canvas();
+          // 手机浏览器的画布有面积上限（约 1600 万像素），记录很多时自动降低清晰度，保证能生成
+          const area = container.offsetWidth * container.scrollHeight;
+          const scale = Math.max(0.6, Math.min(2, Math.sqrt(16e6 / area)));
+          const canvas = await html2canvas(container, { backgroundColor: '#121214', scale, logging: false });
+          const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+          if (!blob) throw new Error('empty');
+          window.showImageResult(blob, L('训练记录长图-', 'workout-report-') + localDateStr() + '.png', L('教练页长图', 'Coach view image'));
+        } catch (error) {
+          showToast(L('长图生成失败，请重试', 'Could not create the image — try again'));
+        } finally {
+          stamp.remove();
+          container.classList.remove('capturing');
+          closed.forEach(el => el.classList.remove('open'));
+          button.disabled = false; button.innerHTML = label;
+        }
+      }
       function renderCoachViewer(payload) {
         const container = $('viewerContent');
         const head = (tag, zh, en, aside) => '<div class="viewer-card-head"><' + tag + '>' + L(zh, en) + '</' + tag + '>' + (aside || '') + '</div>';
         const coachCard = (zh, en, reply) => '<section class="viewer-coach-card"><div style="font-size:15px; font-weight:850; color:var(--green); margin-bottom:4px;">' + L(zh, en) + '</div><div style="font-size:13px; color:var(--muted);">' + L('可直接复制发给学员：', 'Copy and send to your trainee:') + '</div><div class="viewer-reply-box" id="coachReplyText">' + escapeHtml(reply) + '</div><button type="button" class="copy-coach-reply-btn" id="copyCoachReplyBtn">' + icon('copy') + ' ' + L('一键复制评语', 'Copy reply') + '</button></section>';
-        const actions = (zh, en) => '<div class="viewer-actions"><button type="button" class="viewer-btn viewer-btn-primary" id="viewerCopyReportBtn">' + icon('copy') + ' ' + L(zh, en) + '</button><button type="button" class="viewer-btn viewer-btn-secondary" id="viewerBackBtn">' + L('返回我的打卡', 'Back to my log') + '</button></div>';
+        const actions = (zh, en) => '<div class="viewer-actions"><button type="button" class="viewer-btn viewer-btn-primary" id="viewerCopyReportBtn">' + icon('copy') + ' ' + L(zh, en) + '</button><button type="button" class="viewer-btn viewer-btn-secondary" id="viewerLongImageBtn">' + icon('image') + ' ' + L('生成长图', 'Save as image') + '</button><button type="button" class="viewer-btn viewer-btn-secondary" id="viewerBackBtn">' + L('返回我的打卡', 'Back to my log') + '</button></div>';
         const setRow = (set, sIdx, compact) => '<div class="viewer-set-row ' + (set.d ? 'done' : '') + '"' + (compact ? ' style="padding:6px 8px; font-size:13px;"' : '') + '><span class="set-number">' + (sIdx + 1) + '</span><span style="font-weight:750;">' + (set.w ? escapeHtml(set.w) + ' kg' : '—') + '</span><span class="times">×</span><span style="font-weight:750;">' + (set.r ? escapeHtml(set.r) + L(' 次', '') : '—') + '</span><span class="viewer-check-badge">' + (set.d ? '✓' : '○') + '</span></div>';
         const bindCommon = (reply, toastZh, toastEn) => {
           $('copyCoachReplyBtn')?.addEventListener('click', async () => {
@@ -1299,6 +1340,7 @@
             showToast(ok ? L(toastZh, toastEn) : L('复制失败，请长按手动复制', 'Copy failed — long-press to copy'));
           });
           $('viewerBackBtn')?.addEventListener('click', exitViewerMode);
+          $('viewerLongImageBtn')?.addEventListener('click', event => captureViewerImage(event.currentTarget));
         };
 
         if (payload.t === 'progress') {
@@ -1467,7 +1509,8 @@
       });
       $('previewCoachViewBtn')?.addEventListener('click', async () => {
         closeShareModal();
-        const payload = getSharePayload(currentShareMode, activeShareSession, activeShareIndex);
+        // 在自己手机上预览「累计进度」时带上全部训练的完整组数，方便生成长图备份
+        const payload = currentShareMode === 'progress' ? buildProgressShareData(true) : getSharePayload(currentShareMode, activeShareSession, activeShareIndex);
         if (!payload || (currentShareMode === 'progress' && !payload.total) || (currentShareMode === 'session' && !payload.ex?.length)) {
           showToast(L('暂无可分享的真实训练记录，请先完成一次训练', 'Nothing real to share yet — finish a session first'));
           return;
@@ -1560,8 +1603,8 @@
       renderAiConfig(); render(); checkAndRenderViewer();
     </script>
     <script src="female-body-data.js?v=20260915_dark"></script>
-    <script src="workout-extras.js?v=20261022_muscles"></script>
-    <script src="workout-videos.js?v=20261022_video"></script>
+    <script src="workout-extras.js?v=20261022_demo"></script>
+    <script src="workout-videos.js?v=20261022_demo"></script>
     <script>
       if ('serviceWorker' in navigator) {
         // 首次访问时 controller 是空的（这一次装完不用刷新）；之后换成新版才自动刷新一次，
