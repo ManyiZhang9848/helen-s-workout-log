@@ -69,12 +69,33 @@
   }
   // 动作示范视频记在动作宝典里：vault[key].demoVideoId。动作库里没有的自定义动作，就靠它当示范。
   function vaultKeyFor(ex) { return app().findVaultKey(app().loadVault(), ex.name, ex.catalogId); }
-  function setDemoVideo(ex, id) {
+  // start：示范从视频第几秒开始循环（取 3 秒）
+  function setDemoVideo(ex, id, start = 0) {
     const vault = app().loadVault();
     const key = app().findVaultKey(vault, ex.name, ex.catalogId);
     if (!vault[key]) vault[key] = { name: String(ex.name || '').trim(), tips: ex.tips || '', catalogId: ex.catalogId || '', muscleGroup: ex.muscleGroup || '', updatedAt: '' };
-    if (id) vault[key].demoVideoId = id; else delete vault[key].demoVideoId;
+    if (id) { vault[key].demoVideoId = id; vault[key].demoStart = start; } else { delete vault[key].demoVideoId; delete vault[key].demoStart; }
     app().saveVault(vault);
+  }
+  // ---------- 示范像动图：静音自动循环播放 3 秒 ----------
+  const DEMO_SECONDS = 3;
+  const demoObserver = 'IntersectionObserver' in window ? new IntersectionObserver(entries => entries.forEach(entry => {
+    const video = entry.target;
+    if (entry.isIntersecting) video.play().catch(() => {}); else video.pause(); // 只播放屏幕上看得到的，省电
+  }), { threshold: 0.2 }) : null;
+  async function startDemoLoop(video, id, start) {
+    const url = await videoUrl(id);
+    if (!url) { video.closest('.video-thumb')?.classList.add('missing'); return; }
+    video.muted = true; video.defaultMuted = true; video.playsInline = true; video.preload = 'auto';
+    let from = Math.max(0, Number(start) || 0);
+    video.addEventListener('loadedmetadata', () => {
+      if (Number.isFinite(video.duration)) from = Math.max(0, Math.min(from, video.duration - DEMO_SECONDS));
+      video.currentTime = from;
+    });
+    video.addEventListener('timeupdate', () => { if (video.currentTime >= from + DEMO_SECONDS || video.currentTime < from - 0.3) video.currentTime = from; });
+    video.addEventListener('ended', () => { video.currentTime = from; video.play().catch(() => {}); });
+    video.src = url;
+    if (demoObserver) demoObserver.observe(video); else video.play().catch(() => {});
   }
   // 删掉动作、清空草稿、删除训练后，没人引用的视频文件一并清掉，免得占手机空间
   let pruneTimer = 0;
@@ -153,13 +174,22 @@
   document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog video-dialog" id="videoDialog"><header class="extra-header"><h2 id="videoDialogTitle">' + L('动作视频', 'Form video') + '</h2><button class="extra-close" id="closeVideo" aria-label="' + L('关闭', 'Close') + '">×</button></header><div class="video-player-wrap"><video id="videoPlayer" controls playsinline></video></div><div class="video-speed" role="group" aria-label="' + L('播放速度', 'Playback speed') + '"><button type="button" data-speed="0.25">0.25×</button><button type="button" data-speed="0.5">0.5×</button><button type="button" data-speed="1" class="active">1×</button></div><div class="video-actions"><button type="button" class="extra-secondary" id="shareVideo">' + icon('share') + ' ' + L('保存 / 分享', 'Save / share') + '</button><button type="button" class="extra-secondary" id="demoVideo"></button><button type="button" class="extra-secondary video-delete" id="deleteVideo">' + L('删除视频', 'Delete video') + '</button></div><p class="video-note">' + L('视频只存在这台手机的 App 里，不包含在「导出备份」中；想长期保留请点「保存 / 分享」存到相册。', 'Videos stay in this app on this phone and are not in “Export backup”. Use “Save / share” to keep a copy in Photos.') + '</p></dialog>');
   const dialog = $('videoDialog'), player = $('videoPlayer');
   let playingId = '', playingExercise = null;
+  player.addEventListener('timeupdate', () => { if (dialog.open) paintDemoButton(); });
+  player.addEventListener('seeked', () => { if (dialog.open) paintDemoButton(); });
   function paintDemoButton() {
     const button = $('demoVideo');
     button.hidden = !playingExercise;
     if (!playingExercise) return;
-    const isDemo = app().loadVault()[vaultKeyFor(playingExercise)]?.demoVideoId === playingId;
-    button.innerHTML = isDemo ? '✓ ' + L('已是动作示范', 'Demo video') : L('设为动作示范', 'Set as demo');
-    button.classList.toggle('is-demo', isDemo);
+    const entry = app().loadVault()[vaultKeyFor(playingExercise)];
+    const isDemo = entry?.demoVideoId === playingId;
+    const sameStart = isDemo && Math.abs((Number(entry.demoStart) || 0) - demoStartFromPlayer()) < 0.5;
+    button.innerHTML = sameStart ? '✓ ' + L('已是示范 · 点击取消', 'Demo · tap to remove') : isDemo ? L('从这里开始取 3 秒', 'Start demo here') : L('设为动作示范', 'Set as demo');
+    button.classList.toggle('is-demo', sameStart);
+  }
+  // 示范从播放器当前画面开始取 3 秒；离结尾不到 3 秒就往前挪
+  function demoStartFromPlayer() {
+    const time = player.currentTime || 0, duration = Number.isFinite(player.duration) ? player.duration : 0;
+    return Math.round(Math.max(0, duration ? Math.min(time, duration - DEMO_SECONDS) : time) * 10) / 10;
   }
   $('closeVideo').onclick = () => dialog.close();
   dialog.addEventListener('close', () => { player.pause(); player.removeAttribute('src'); player.load(); });
@@ -209,11 +239,13 @@
   };
   $('demoVideo').onclick = () => {
     if (!playingExercise) return;
-    const isDemo = app().loadVault()[vaultKeyFor(playingExercise)]?.demoVideoId === playingId;
-    setDemoVideo(playingExercise, isDemo ? '' : playingId);
+    const entry = app().loadVault()[vaultKeyFor(playingExercise)];
+    const start = demoStartFromPlayer();
+    const remove = entry?.demoVideoId === playingId && Math.abs((Number(entry.demoStart) || 0) - start) < 0.5;
+    setDemoVideo(playingExercise, remove ? '' : playingId, start);
     paintDemoButton();
     if ($('vaultModal')?.open && window.renderVaultList) window.renderVaultList();
-    showToast(isDemo ? L('已取消动作示范', 'Demo removed') : L('已设为「' + playingExercise.name + '」的动作示范，在动作宝典里能看到', 'Set as the demo for “' + playingExercise.name + '” — see it in your playbook'));
+    showToast(remove ? L('已取消动作示范', 'Demo removed') : L('已设为动作示范：从 ' + start.toFixed(1) + ' 秒起循环 3 秒', 'Demo set: loops 3 s from ' + start.toFixed(1) + ' s'));
   };
   $('deleteVideo').onclick = async () => {
     if (!playingId || !window.confirm(L('删除这段动作视频？删除后无法恢复。', 'Delete this video? This can’t be undone.'))) return;
@@ -261,7 +293,7 @@
         if (!vault[key]) return;
         vault[key].videos = [...(vault[key].videos || []), { id, createdAt: Date.now(), size: file.size, type: file.type || 'video/mp4' }];
         const firstDemo = !vault[key].demoVideoId;
-        if (firstDemo) vault[key].demoVideoId = id;
+        if (firstDemo) { vault[key].demoVideoId = id; vault[key].demoStart = 0; }
         app().saveVault(vault);
         if (window.renderVaultList) window.renderVaultList();
         const fresh = document.querySelector('#vaultList .vault-card[data-vault-key="' + CSS.escape(key) + '"]');
@@ -294,9 +326,10 @@
           demo.className = 'video-thumb vault-demo';
           demo.dataset.videoId = entry.demoVideoId;
           demo.setAttribute('aria-label', L('播放动作示范', 'Play demo video'));
-          demo.innerHTML = '<video muted playsinline preload="metadata"></video><span class="video-thumb-time">' + L('示范', 'Demo') + '</span>';
+          demo.innerHTML = '<video muted playsinline></video><span class="video-thumb-time">' + L('示范', 'Demo') + '</span>';
           media.replaceWith(demo);
-          hydrateThumbs(card.querySelector('.vault-card-top'));
+          demo.onclick = () => openPlayer(entry.demoVideoId);
+          startDemoLoop(demo.querySelector('video'), entry.demoVideoId, entry.demoStart);
         }
       }
       addVaultUpload(card, card.dataset.vaultKey);
