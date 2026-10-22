@@ -638,6 +638,7 @@
         renderVaultList();
       };
     });
+    window.onVaultListRendered?.(vaultList);
   }
 
   window.renderVaultList = renderVaultList;
