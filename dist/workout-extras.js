@@ -134,7 +134,7 @@
     });
   }
   const optionList = (values, label) => '<option value="">'+label+'</option>'+Object.entries(values).map(([key,value])=>'<option value="'+key+'">'+value+'</option>').join('');
-  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog" id="exerciseLibrary"><header class="extra-header"><h2>'+L('3D动作库','3D Exercise Library')+'</h2><button class="extra-close" id="closeLibrary" aria-label="'+L('关闭动作库','Close library')+'">×</button></header><div class="library-controls"><input id="librarySearch" type="search" placeholder="'+L('搜索动作，例如：卧推、深蹲、bench press','Search, e.g. bench press, squat, 卧推')+'" aria-label="'+L('搜索动作','Search exercises')+'"><div class="library-filters"><select id="libraryMuscle" aria-label="'+L('按肌群筛选','Filter by muscle')+'">'+optionList(groups,L('全部肌群','All muscles'))+'</select><select id="libraryEquipment" aria-label="'+L('按器械筛选','Filter by equipment')+'">'+optionList(equipment,L('全部器械','All equipment'))+'</select></div><p class="library-status" id="libraryStatus"></p><button class="extra-secondary" id="libraryCustom">'+L('＋ 自己填写动作','＋ Enter my own exercise')+'</button></div><div id="libraryList" class="library-list"></div><footer class="library-footer">'+L('动作库由 ','Exercise data from ')+'<a href="https://github.com/hasaneyldrm/exercises-dataset" target="_blank" rel="noopener">ExerciseDB (exercises-dataset)</a>'+L(' 提供，3D 白模动图版权归 ',' · 3D animations © ')+'<a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym Visual</a>'+L(' 所有。','. ')+'<a href="OPEN-SOURCE-LICENSES.txt" target="_blank">'+L('开源许可','Open-source licenses')+'</a></footer></dialog><dialog class="extra-dialog" id="posterDialog"><header class="extra-header"><h2>'+L('训练打卡长图','Workout Poster')+'</h2><button class="extra-close" id="closePoster" aria-label="'+L('关闭打卡图','Close poster')+'">×</button></header><div class="poster-controls"><label>'+L('显示名称','Display name')+'<input id="posterName" maxlength="24" placeholder="'+L('我的训练','My Workout')+'"></label></div><img id="posterPreview" class="poster-preview" alt="'+L('训练打卡长图，包含肌群分布和动作明细','Workout poster with muscle map and exercise details')+'" title="'+L('点击可全屏放大','Tap to view full screen')+'"><p class="poster-hint">'+L('点一下图片可全屏放大查看','Tap the image to view full screen')+'</p><div class="poster-actions"><a class="extra-primary" id="downloadPoster" download="workout.png">'+L('保存图片','Save image')+'</a><button class="extra-secondary" id="sharePoster">'+L('分享图片','Share image')+'</button></div><p class="poster-note" id="posterNote"></p><div class="poster-zoom" id="posterZoom"><button class="poster-zoom-close" id="posterZoomClose" aria-label="'+L('关闭放大预览','Close preview')+'">×</button><img id="posterZoomImg" alt="'+L('训练打卡长图放大预览','Workout poster, full screen')+'"></div></dialog>');
+  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog" id="exerciseLibrary"><header class="extra-header"><h2>'+L('3D动作库','3D Exercise Library')+'</h2><button class="extra-close" id="closeLibrary" aria-label="'+L('关闭动作库','Close library')+'">×</button></header><div class="library-controls"><input id="librarySearch" type="search" placeholder="'+L('搜索动作，例如：卧推、深蹲、bench press','Search, e.g. bench press, squat, 卧推')+'" aria-label="'+L('搜索动作','Search exercises')+'"><div class="library-filters"><select id="libraryMuscle" aria-label="'+L('按肌群筛选','Filter by muscle')+'">'+optionList(groups,L('全部肌群','All muscles'))+'</select><select id="libraryEquipment" aria-label="'+L('按器械筛选','Filter by equipment')+'">'+optionList(equipment,L('全部器械','All equipment'))+'</select></div><p class="library-status" id="libraryStatus"></p><button class="extra-secondary" id="libraryCustom">'+L('＋ 自己填写动作','＋ Enter my own exercise')+'</button></div><div id="libraryList" class="library-list"></div><footer class="library-footer">'+L('动作库由 ','Exercise data from ')+'<a href="https://github.com/hasaneyldrm/exercises-dataset" target="_blank" rel="noopener">ExerciseDB (exercises-dataset)</a>'+L(' 提供，3D 白模动图版权归 ',' · 3D animations © ')+'<a href="https://gymvisual.com/" target="_blank" rel="noopener">Gym Visual</a>'+L(' 所有。','. ')+'<a href="OPEN-SOURCE-LICENSES.txt" target="_blank">'+L('开源许可','Open-source licenses')+'</a></footer></dialog><dialog class="extra-dialog" id="posterDialog"><header class="extra-header"><h2>'+L('训练打卡长图','Workout Poster')+'</h2><button class="extra-close" id="closePoster" aria-label="'+L('关闭打卡图','Close poster')+'">×</button></header><div class="poster-controls"><label>'+L('显示名称','Display name')+'<input id="posterName" maxlength="24" placeholder="'+L('我的训练','My Workout')+'"></label></div><img id="posterPreview" class="poster-preview" alt="'+L('训练打卡长图，包含肌群分布和动作明细','Workout poster with muscle map and exercise details')+'" title="'+L('点击可全屏放大','Tap to view full screen')+'"><p class="poster-hint">'+L('点一下图片可全屏放大查看','Tap the image to view full screen')+'</p><div class="poster-actions"><a class="extra-primary" id="downloadPoster" download="workout.png">'+L('存到相册','Save to Photos')+'</a><button class="extra-secondary" id="sharePoster">'+L('分享图片','Share image')+'</button></div><p class="poster-note" id="posterNote"></p><div class="poster-zoom" id="posterZoom"><button class="poster-zoom-close" id="posterZoomClose" aria-label="'+L('关闭放大预览','Close preview')+'">×</button><img id="posterZoomImg" alt="'+L('训练打卡长图放大预览','Workout poster, full screen')+'"></div></dialog>');
   const library = $('exerciseLibrary'), poster = $('posterDialog');
   let libraryLimit = 20;
   function openLibrary() { libraryLimit = 20; $('librarySearch').value=''; $('libraryMuscle').value=''; $('libraryEquipment').value=''; renderLibrary(); library.showModal(); }
@@ -157,6 +157,47 @@
     return names;
   }
   const zhNameOf = (ex, names) => names[ex.id] || ex.zh;
+  // 常见中文叫法 → 动作库英文名里的关键词。move: 动作本身（推、拉、蹲…），其余是器械和修饰词。
+  const ZH_TERMS = [
+    [/卧推|推胸|胸推/, ['bench press','chest press'], true], [/飞鸟|夹胸/, ['fly','cross-over'], true], [/蝴蝶机/, ['lever seated fly'], true],
+    [/划船/, ['row'], true], [/下拉/, ['pulldown'], true], [/引体/, ['pull-up','pull up','chin-up'], true], [/直臂/, ['straight arm'], true],
+    [/深蹲/, ['squat'], true], [/硬拉/, ['deadlift'], true], [/弓步|箭步/, ['lunge'], true], [/分腿蹲|保加利亚/, ['split squat'], true],
+    [/臀推/, ['hip thrust','glute bridge'], true], [/臀桥/, ['glute bridge','bridge'], true], [/推肩|肩推|推举|军推/, ['shoulder press','overhead press','military press'], true],
+    [/侧平举/, ['lateral raise'], true], [/前平举/, ['front raise'], true], [/反向飞鸟|俯身飞鸟|后束/, ['rear fly','reverse fly','rear delt'], true], [/面拉/, ['face pull','rear delt row'], true],
+    [/耸肩/, ['shrug'], true], [/弯举/, ['curl'], true], [/锤式/, ['hammer'], false], [/下压/, ['pushdown'], true], [/臂屈伸/, ['triceps extension','dip'], true], [/双杠/, ['dip'], true],
+    [/俯卧撑/, ['push-up','push up'], true], [/卷腹/, ['crunch'], true], [/平板/, ['plank'], true], [/举腿/, ['leg raise'], true], [/转体/, ['twist'], true],
+    [/提踵/, ['calf raise'], true], [/腿举|倒蹬/, ['leg press'], true], [/腿屈伸/, ['leg extension'], true], [/腿弯举/, ['leg curl'], true],
+    [/外展/, ['abduction'], true], [/内收/, ['adduction'], true], [/山羊挺身|背屈伸|挺身/, ['hyperextension'], true], [/后踢|驴踢/, ['kickback'], true],
+    [/蚌式/, ['clam'], true], [/早安/, ['good morning'], true], [/登阶/, ['step-up'], true],
+    [/上斜/, ['incline'], false], [/下斜/, ['decline'], false], [/坐姿/, ['seated'], false], [/站姿/, ['standing'], false], [/俯身/, ['bent over'], false],
+    [/单臂|单手/, ['one arm','single arm'], false], [/单腿/, ['one leg','single leg'], false], [/宽握/, ['wide'], false], [/窄握|窄距/, ['close grip','narrow'], false], [/反握/, ['reverse grip','underhand'], false],
+    [/高脚杯/, ['goblet'], false], [/哈克/, ['hack'], false], [/相扑/, ['sumo'], false], [/罗马尼亚/, ['romanian'], false],
+    [/哑铃/, ['dumbbell'], false], [/杠铃/, ['barbell'], false], [/绳索|龙门架|拉力器/, ['cable'], false], [/器械|机/, ['lever','machine','sled'], false],
+    [/史密斯/, ['smith'], false], [/壶铃/, ['kettlebell'], false], [/弹力带/, ['band'], false], [/[Tt]杠/, ['t bar'], false], [/曲杆/, ['ez'], false]
+  ];
+  const bigrams = text => { const out = new Set(); for (let i = 0; i < text.length - 1; i++) out.add(text.slice(i, i + 2)); return out; };
+  function suggestCatalogMatches(rawName, limit = 5) {
+    const name = clean(rawName);
+    if (name.length < 2) return [];
+    const terms = ZH_TERMS.filter(([re]) => re.test(rawName));
+    const hasMove = terms.some(term => term[2]);
+    const english = /[a-z]/.test(name) ? String(rawName).toLowerCase().split(/[^a-z-]+/).filter(word => word.length > 2) : [];
+    const own = bigrams(name), names = customZhNames();
+    return catalog.map(ex => {
+      const en = ex.name.toLowerCase(), zh = clean(zhNameOf(ex, names));
+      let score = 0, moveHit = false;
+      terms.forEach(([, words, move]) => { if (words.some(word => en.includes(word))) { score += move ? 4 : 1; if (move) moveHit = true; } });
+      english.forEach(word => { if (en.includes(word)) score += 2; });
+      const theirs = bigrams(zh); let common = 0; own.forEach(pair => { if (theirs.has(pair)) common++; });
+      if (own.size && theirs.size) score += 6 * (2 * common / (own.size + theirs.size));
+      if (hasMove && !moveHit) score -= 3;       // 动作本身对不上的，排到后面
+      if (/\(|male|female|v\. ?\d/.test(en)) score -= 0.5; // 同一动作的变体版本略往后放
+      return { ex, score };
+    }).filter(item => item.score >= 3).sort((a, b) => b.score - a.score)
+      .filter((item, index, list) => list.findIndex(other => clean(zhNameOf(other.ex, names)) === clean(zhNameOf(item.ex, names))) === index) // 同名只留一个，候选更多样
+      .slice(0, limit).map(item => item.ex);
+  }
+  window.suggestCatalogMatches = suggestCatalogMatches;
   function renderLibrary() {
     const query=clean($('librarySearch').value), muscle=$('libraryMuscle').value, gear=$('libraryEquipment').value;
     const names = customZhNames();
@@ -218,6 +259,36 @@
     if (loadBtn) loadBtn.onclick = () => { libraryLimit += 20; renderLibrary(); };
   }
   const openPickers = new Set(); // 展开着选择器的动作，卡片重绘后保持展开
+  // 自己填写名字的动作（没关联动作库）：在名字下面提示「动作库里可能是」，点一下就关联，名字保留自己的叫法
+  function addMatchSuggestions(card, ex) {
+    const box = document.createElement('div');
+    box.className = 'match-box';
+    card.querySelector('.exercise-head').after(box);
+    let timer = 0;
+    const paint = () => {
+      const name = String(ex.name || '').trim();
+      const linked = ex.catalogId || matchExercise(ex);
+      const list = (!linked && !ex.matchDismissed && name.length >= 2) ? suggestCatalogMatches(name) : [];
+      box.hidden = !list.length;
+      if (!list.length) { box.innerHTML = ''; return; }
+      const names = customZhNames();
+      box.innerHTML = '<div class="match-head"><span>' + L('动作库里可能是：', 'Could be one of these:') + '</span><button type="button" class="match-dismiss">' + L('都不是', 'None of these') + '</button></div><div class="match-list">' + list.map(item => '<button type="button" class="match-item" data-match="' + item.id + '"><strong>' + escapeHtml(I18N.mode === 'en' ? item.name : zhNameOf(item, names)) + '</strong><span>' + escapeHtml(I18N.mode === 'en' ? zhNameOf(item, names) : item.name) + '</span></button>').join('') + '</div>';
+      box.querySelector('.match-dismiss').onclick = () => { ex.matchDismissed = true; saveState(); paint(); };
+      box.querySelectorAll('[data-match]').forEach(button => button.onclick = () => {
+        const item = catalog.find(entry => entry.id === button.dataset.match);
+        if (!item) return;
+        ex.catalogId = item.id;
+        delete ex.matchDismissed;
+        const vault = app().loadVault();
+        const key = app().findVaultKey(vault, ex.name, item.id);
+        if (!ex.tips && vault[key]?.tips) ex.tips = vault[key].tips;
+        saveState(); render();
+        showToast(L('已关联动作库「' + zhNameOf(item, names) + '」，名字保留你的叫法', 'Linked to “' + item.name + '” — your name is kept'));
+      });
+    };
+    paint();
+    card.querySelector('[data-field="name"]').addEventListener('input', () => { delete ex.matchDismissed; clearTimeout(timer); timer = setTimeout(paint, 250); });
+  }
   function addMuscleControls() {
     document.querySelectorAll('#exerciseList [data-exercise]').forEach(card=>{
       const ex=app().getState().current.exercises.find(item=>item.id===card.dataset.exercise);if(!ex)return;
@@ -232,6 +303,7 @@
         bindMuscleChips(row,()=>exerciseMuscleKeys(ex),next=>{setExerciseMuscles(ex,next);saveState();paint();});
       };
       paint();card.appendChild(row);
+      addMatchSuggestions(card, ex);
       card.querySelector('[data-field="name"]').addEventListener('input',()=>{delete ex.catalogId;paint();});
     });
   }
@@ -420,6 +492,29 @@
     event.preventDefault();
     try{await navigator.share({files:[file]});}catch(error){if(error.name!=='AbortError')showToast(L('请长按上方图片，选择「存储到照片」','Long-press the image above and choose “Save to Photos”'));}
   });
+  // 网页不能不经确认直接写进相册：手机上走系统分享面板（第一个选项就是「存储图像」），电脑上直接下载
+  async function saveImageBlob(blob, name) {
+    const file = new File([blob], name, { type: blob.type || 'image/png' });
+    if (/iphone|ipad|android/i.test(navigator.userAgent) && navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file] }); return; } catch (error) { if (error.name === 'AbortError') return; }
+    }
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url; link.download = name; document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1500);
+  }
+  document.body.insertAdjacentHTML('beforeend', '<dialog class="extra-dialog" id="imageDialog"><header class="extra-header"><h2 id="imageDialogTitle"></h2><button class="extra-close" id="closeImageDialog" aria-label="' + L('关闭', 'Close') + '">×</button></header><div class="image-result-wrap"><img id="imageResult" alt=""></div><div class="poster-actions"><button type="button" class="extra-primary" id="saveImageResult">' + L('存到相册', 'Save to Photos') + '</button></div><p class="poster-note">' + L('iPhone：点「存到相册」后选「存储图像」；也可以长按图片，选「添加到照片」。', 'iPhone: tap “Save to Photos”, then “Save Image” — or long-press the image and choose “Add to Photos”.') + '</p></dialog>');
+  let resultBlob = null, resultName = '', resultUrl = '';
+  window.showImageResult = (blob, name, title) => {
+    resultBlob = blob; resultName = name;
+    if (resultUrl) URL.revokeObjectURL(resultUrl);
+    resultUrl = URL.createObjectURL(blob);
+    $('imageDialogTitle').textContent = title;
+    $('imageResult').src = resultUrl;
+    $('imageDialog').showModal();
+  };
+  $('closeImageDialog').onclick = () => $('imageDialog').close();
+  $('saveImageResult').onclick = () => { if (resultBlob) saveImageBlob(resultBlob, resultName); };
   $('sharePoster').onclick=async()=>{
     if(!posterBlob)return;const file=new File([posterBlob],L('训练打卡.png','workout.png'),{type:'image/png'});
     if(navigator.canShare?.({files:[file]})){try{await navigator.share({files:[file],title:L('我的训练打卡','My workout check-in')});}catch(error){if(error.name!=='AbortError')showToast(L('请点击保存图片，或长按图片保存','Tap “Save image”, or long-press the image'));}}

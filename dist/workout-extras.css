@@ -165,3 +165,21 @@ html[data-lang="en"] .muscle-area-name { padding-top:0; }
 .video-note { margin:0; padding:12px 16px 16px; color:var(--muted); font-size:12px; line-height:1.55; }
 .vault-videos { display:grid; gap:8px; }
 .vault-videos-head { display:flex; align-items:center; gap:6px; color:#95c99f; font-size:12px; font-weight:850; }
+
+/* 动作库匹配提示 */
+.match-box { margin:-8px 0 14px; padding:10px 12px; border:1px solid #3c5442; border-radius:14px; background:#16211a; }
+.match-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; color:#95c99f; font-size:12px; font-weight:800; }
+.match-dismiss { border:0; background:transparent; color:var(--muted); font-size:12px; font-weight:700; padding:4px 2px; }
+.match-list { display:grid; gap:6px; }
+.match-item { display:grid; gap:2px; text-align:left; padding:8px 10px; border:1px solid #2f4535; border-radius:10px; background:#111913; color:var(--text); }
+.match-item strong { font-size:14px; }
+.match-item span { color:var(--muted); font-size:12px; }
+.match-item:active { border-color:var(--green); }
+/* 动作示范（宝典封面） */
+.vault-demo { width:56px; height:56px; border-radius:12px; }
+.vault-demo .video-thumb-time { left:3px; bottom:3px; padding:0 4px; font-size:9px; }
+.video-actions { grid-template-columns:1fr 1fr 1fr; }
+.video-actions #demoVideo.is-demo { border-color:var(--green); color:var(--green); }
+/* 生成的长图预览 */
+.image-result-wrap { padding:12px 16px; max-height:calc(var(--dialog-max-h) - 190px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.image-result-wrap img { display:block; width:100%; border-radius:12px; background:#121214; }
