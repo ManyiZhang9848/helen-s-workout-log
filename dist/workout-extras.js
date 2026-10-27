@@ -198,6 +198,8 @@
       .slice(0, limit).map(item => item.ex);
   }
   window.suggestCatalogMatches = suggestCatalogMatches;
+  // 给其他模块（训练历史）用：动作练到的大肌群、肌群名称
+  window.workoutMuscles = { exerciseGroups, groupLabel: key => groups[key] || key };
   function renderLibrary() {
     const query=clean($('librarySearch').value), muscle=$('libraryMuscle').value, gear=$('libraryEquipment').value;
     const names = customZhNames();
