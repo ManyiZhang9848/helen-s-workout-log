@@ -186,3 +186,20 @@ html[data-lang="en"] .muscle-area-name { padding-top:0; }
 .image-result-wrap { padding:12px 16px; max-height:calc(var(--dialog-max-h) - 190px); overflow-y:auto; -webkit-overflow-scrolling:touch; }
 .image-result-wrap img { display:block; width:100%; border-radius:12px; background:#121214; }
 .vault-video-add { display:flex; margin:8px 0 0; min-height:40px; font-size:13px; }
+
+/* 照上次练：提示条 */
+.repeat-box { margin:0 0 14px; padding:12px; border:1px solid #3c5442; border-radius:16px; background:#16211a; }
+.repeat-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px; color:#95c99f; font-size:13px; font-weight:800; }
+.repeat-close { border:0; background:transparent; color:var(--muted); font-size:20px; line-height:1; padding:2px 6px; }
+.repeat-list { display:grid; gap:8px; }
+.repeat-item { display:grid; gap:3px; text-align:left; padding:10px 12px; border:1px solid #2f4535; border-radius:12px; background:#111913; color:var(--text); }
+.repeat-item strong { color:var(--green); font-size:15px; }
+.repeat-item span { color:var(--muted); font-size:12px; line-height:1.45; }
+.repeat-chips { display:flex; flex-wrap:wrap; gap:8px; }
+.repeat-chip { padding:8px 12px; border:1px solid #3c5442; border-radius:999px; background:#111913; color:var(--text); font-size:13px; font-weight:750; }
+.repeat-chip.repeat-all { border-color:var(--green); background:var(--green); color:#102015; }
+/* 动作卡片：练过几次 + 上次 */
+.exercise-last { display:flex; flex-wrap:wrap; align-items:center; gap:6px 10px; margin:-8px 0 12px; color:var(--muted); font-size:12px; line-height:1.5; }
+.exercise-count { padding:1px 8px; border-radius:999px; background:var(--green-dark); color:var(--green); font-weight:800; }
+.exercise-prefilled { color:#95c99f; }
+.vault-count { color:#a8d5b1; font-weight:750; }
