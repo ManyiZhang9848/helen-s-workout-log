@@ -148,7 +148,7 @@
   $('posterZoomClose').addEventListener('click', () => posterZoom.classList.remove('show'));
   posterZoom.addEventListener('click', event => { if(event.target === posterZoom) posterZoom.classList.remove('show'); });
   poster.addEventListener('close', () => posterZoom.classList.remove('show'));
-  $('libraryCustom').onclick=()=>{library.close();addCustomExercise();};
+  $('libraryCustom').onclick=()=>{const typed=$('librarySearch').value.trim();library.close();addCustomExercise(typed);};
   for(const id of ['librarySearch','libraryMuscle','libraryEquipment'])$(id).addEventListener('input',()=>{ libraryLimit = 20; renderLibrary(); });
   // 用户在动作宝典里改过的中文名（按动作库 id），动作库里显示和加入训练时都用它
   function customZhNames() {
@@ -201,6 +201,8 @@
   // 给其他模块（训练历史）用：动作练到的大肌群、肌群名称
   window.workoutMuscles = { exerciseGroups, groupLabel: key => groups[key] || key };
   function renderLibrary() {
+    const typed=$('librarySearch').value.trim();
+    $('libraryCustom').textContent = typed ? L('＋ 用「'+typed+'」自己添加','＋ Add “'+typed+'” as my own') : L('＋ 自己填写动作','＋ Enter my own exercise');
     const query=clean($('librarySearch').value), muscle=$('libraryMuscle').value, gear=$('libraryEquipment').value;
     const names = customZhNames();
     const list=catalog.filter(ex=>{
@@ -229,7 +231,7 @@
         '<span class="library-meta">' + escapeHtml(label) + ' · ' + escapeHtml(eqText) + '</span>' +
         '<button type="button" class="extra-primary" data-library-add="' + ex.id + '">' + L('加入训练','Add') + '</button>' +
       '</article>';
-    }).join('') + (list.length > libraryLimit ? '<button type="button" class="library-load-more" id="loadMoreExercises">' + L('查看更多动作（还有 ' + (list.length - libraryLimit) + ' 个）', 'Show more (' + (list.length - libraryLimit) + ' left)') + '</button>' : '') : '<p class="library-status" style="grid-column:1/-1;text-align:center;padding:24px 0;">' + L('没有匹配动作，可以点击“自己填写动作”。','No match — tap “Enter my own exercise”.') + '</p>';
+    }).join('') + (list.length > libraryLimit ? '<button type="button" class="library-load-more" id="loadMoreExercises">' + L('查看更多动作（还有 ' + (list.length - libraryLimit) + ' 个）', 'Show more (' + (list.length - libraryLimit) + ' left)') + '</button>' : '') : '<p class="library-status" style="grid-column:1/-1;text-align:center;padding:24px 0;">' + L('没有匹配动作，' + (typed ? '点上方按钮直接用这个名字添加。' : '可以点击“自己填写动作”。'), 'No match — ' + (typed ? 'tap the button above to add it with this name.' : 'tap “Enter my own exercise”.')) + '</p>';
     $('libraryList').querySelectorAll('.library-media-wrap').forEach(wrap => {
       wrap.onclick = () => {
         const gif = wrap.dataset.gif;

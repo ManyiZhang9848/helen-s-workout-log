@@ -478,7 +478,7 @@
       </div>
     </dialog>
 
-    <link rel="stylesheet" href="workout-extras.css?v=20261027_self" data-page-node-id="xtV5QddAx3lujE2utp3aJu" />
+    <link rel="stylesheet" href="workout-extras.css?v=20261027_custom" data-page-node-id="xtV5QddAx3lujE2utp3aJu" />
     <script src="catalog-data.js"></script>
     <script src="vault-presets.js"></script>
     <script>
@@ -822,7 +822,12 @@
       }
       function renderAi() { $('aiOutput').hidden = !state.aiSummary; $('aiContent').textContent = state.aiSummary || ''; }
       function addExercise() { if (window.openExerciseLibrary) { window.openExerciseLibrary(); return; } addCustomExercise(); }
-      function addCustomExercise() { state.current.exercises.push(blankExercise()); saveState(); render(); setTimeout(() => { const names = document.querySelectorAll('.exercise-name'); names[names.length - 1]?.focus(); }, 0); }
+      function addCustomExercise(name) {
+        // 从动作库搜索框带过来的名字直接填上，不用再输一遍
+        const exercise = blankExercise(); if (typeof name === 'string') exercise.name = name.trim();
+        state.current.exercises.push(exercise); saveState(); render();
+        setTimeout(() => { const names = document.querySelectorAll('.exercise-name'); const input = names[names.length - 1]; if (!input) return; input.focus(); input.setSelectionRange?.(input.value.length, input.value.length); }, 0);
+      }
       function syncMeta() { state.current.date = $('dateInput').value; state.current.duration = $('durationInput').value; state.current.calories = String(estimatedCalories()); state.current.notes = $('notesInput').value; saveState(); }
       function draftHasContent() {
         const current = state.current || {};
@@ -1656,9 +1661,9 @@
       renderAiConfig(); render(); checkAndRenderViewer();
     </script>
     <script src="female-body-data.js?v=20260915_dark"></script>
-    <script src="workout-extras.js?v=20261027_self"></script>
-    <script src="workout-videos.js?v=20261027_self"></script>
-    <script src="workout-history.js?v=20261027_self"></script>
+    <script src="workout-extras.js?v=20261027_custom"></script>
+    <script src="workout-videos.js?v=20261027_custom"></script>
+    <script src="workout-history.js?v=20261027_custom"></script>
     <script>
       if ('serviceWorker' in navigator) {
         // 首次访问时 controller 是空的（这一次装完不用刷新）；之后换成新版才自动刷新一次，
