@@ -448,7 +448,7 @@
     const weekday=Number.isNaN(posterDate.getTime())?'':L(new Intl.DateTimeFormat('zh-CN',{weekday:'long'}).format(posterDate),new Intl.DateTimeFormat('en-US',{weekday:'long'}).format(posterDate));
     text(session.date?session.date+' '+weekday:L('日期未填写','No date'),42,69,25,'#d5dad6');
     card(36,110,888,620);text($('posterName').value.trim()||L('我的训练','My Workout'),76,169,32,'#f2f5f1',true);
-    text(posterDraft?L('本次训练草稿','Draft'):L('已保存的训练','Saved session'),76,205,20,'#8f9993');
+    text((posterDraft?L('本次训练草稿','Draft'):L('已保存的训练','Saved session'))+(posterSession.type==='self'?L(' · 自主训练',' · Self training'):''),76,205,20,'#8f9993');
     drawLabeledBody(ctx,summary.muscles,50,235,'front');drawLabeledBody(ctx,summary.muscles,390,235,'back');
     text(L('正面','Front'),192,692,20,'#8f9993');text(L('背面','Back'),532,692,20,'#8f9993');
     // 右侧数据栏的说明文字：对照模式中文下面再写一行小号英文

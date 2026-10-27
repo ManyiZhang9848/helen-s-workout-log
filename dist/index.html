@@ -117,6 +117,18 @@
          再窄下去后面四列会被压到 68px 以内，「总容量」的 5 位数就会被裁。
          提前到 640px 就折成两列（手机端媒体查询在 560px 处会再覆盖一次，取值相同）。 */
       @media (max-width:640px) { .meta-grid { grid-template-columns:repeat(2,1fr); } }
+      .type-row { display:flex; align-items:center; gap:10px; margin:0 0 12px; }
+      .type-switch { display:flex; padding:3px; border:1px solid var(--line); border-radius:999px; background:#18181b; }
+      .type-switch button { border:0; border-radius:999px; padding:7px 14px; background:transparent; color:var(--muted); font-size:13px; font-weight:800; }
+      .type-switch button.active { background:var(--green); color:#102015; }
+      .type-switch button[data-session-type="self"].active { background:#cfe9d5; color:#14301c; }
+      .type-hint { color:var(--muted); font-size:12px; }
+      .self-tag { display:inline-block; margin-left:8px; padding:1px 7px; border-radius:6px; background:#26302a; color:#a8d5b1; font-size:11px; font-weight:800; vertical-align:2px; }
+      .report-day.has-workout.self-day { border-color:#2f3a32; background:#1a201c; }
+      .report-day.has-workout.self-day .report-day-number { color:#a8d5b1; }
+      .stats-filter { display:flex; gap:6px; margin:0 0 12px; }
+      .stats-filter button { flex:1; border:1px solid var(--line); border-radius:999px; padding:6px 8px; background:transparent; color:var(--muted); font-size:12px; font-weight:800; }
+      .stats-filter button.active { border-color:var(--green); background:var(--green-dark); color:var(--green); }
       .meta-hint { display:block; margin-top:-6px; color:var(--muted); font-size:11px; line-height:1.4; }
       .meta-link { display:block; margin:0 0 8px; padding:4px 0; border:0; background:transparent; color:var(--green); font-size:12px; font-weight:750; }
       /* 从主屏幕打开时状态栏是透明的：给它垫一条和页面同色的底，滚动时内容不会透到时间和信号下面 */
@@ -308,6 +320,7 @@
 
       <section aria-labelledby="session-heading" data-page-node-id="Abtty86Jax8YK8r2fYPUKC">
         <div class="section-head" data-page-node-id="PGugAPksWhLdfHAiJU9oOr"><h2 id="session-heading" data-en="This Session" data-page-node-id="FknXrkEcP3DlkBNh2Hn1rb">本次训练</h2><button type="button" class="draft-pill-btn" id="openDraftModal" aria-label="查看草稿详情与管理" data-en-aria="View and manage draft"><span class="draft-dot"></span><span id="draftStatus">草稿会自动存在本机</span> <span style="font-size:10px; opacity:.7;">▾</span></button></div>
+        <div class="type-row"><div class="type-switch" role="group" aria-label="训练类型" data-en-aria="Session type"><button type="button" data-session-type="coach" data-en="Coach session">教练课</button><button type="button" data-session-type="self" data-en="Self training">自主训练</button></div><span class="type-hint" id="typeHint"></span></div>
         <div class="meta-grid" data-page-node-id="KCC1yfbZp97zkEUD2nrr61">
           <div class="meta-field" data-page-node-id="60fSyQfXVon1zBHoqrSW73"><label for="dateInput" data-en="Date" data-page-node-id="kuoeccf3t3ln65HPsLdSrf">训练日期</label><input id="dateInput" type="date" data-page-node-id="B473UpmRivcD3VF81J176w" /></div>
           <div class="meta-field" data-page-node-id="prxTJdziDQPbkD125Z9hXF"><label for="durationInput" data-en="Duration" data-page-node-id="T1PCehENFwxIAgYOTjljaN">训练时长</label><input id="durationInput" inputmode="numeric" placeholder="分钟" data-en-ph="min" data-page-node-id="Cy692lhaQWvGG1KZMe1n8x" /><span class="meta-hint" id="durationHint"></span></div>
@@ -465,7 +478,7 @@
       </div>
     </dialog>
 
-    <link rel="stylesheet" href="workout-extras.css?v=20261027_history" data-page-node-id="xtV5QddAx3lujE2utp3aJu" />
+    <link rel="stylesheet" href="workout-extras.css?v=20261027_self" data-page-node-id="xtV5QddAx3lujE2utp3aJu" />
     <script src="catalog-data.js"></script>
     <script src="vault-presets.js"></script>
     <script>
@@ -635,6 +648,25 @@
         if (Number.isNaN(date.getTime())) return L('日期无效', 'Invalid date');
         return L(new Intl.DateTimeFormat('zh-CN', { month:'numeric', day:'numeric', weekday:'short' }).format(date), new Intl.DateTimeFormat('en-US', { weekday:'short', month:'short', day:'numeric' }).format(date));
       }
+      // 训练类型：教练课（计入 20 次打卡）/ 自主训练（不计入）。以前保存的记录没有 type，都算教练课。
+      const SESSION_TYPE_KEY = 'workout-last-type';
+      const isSelf = session => Boolean(session) && session.type === 'self';
+      const coachSessions = () => state.sessions.filter(session => !isSelf(session));
+      function currentType() {
+        if (state.current.type !== 'self' && state.current.type !== 'coach') {
+          let last = 'coach';
+          try { if (localStorage.getItem(SESSION_TYPE_KEY) === 'self') last = 'self'; } catch (e) {}
+          state.current.type = last; // 新草稿沿用上次选的类型
+        }
+        return state.current.type;
+      }
+      function renderTypeSwitch() {
+        const type = currentType();
+        document.querySelectorAll('[data-session-type]').forEach(button => { const active = button.dataset.sessionType === type; button.classList.toggle('active', active); button.setAttribute('aria-pressed', String(active)); });
+        $('typeHint').textContent = type === 'self' ? L('不计入 20 次打卡', 'Not counted toward the 20') : L('计入 20 次打卡', 'Counts toward the 20');
+      }
+      // 一条已保存的教练课是第几次（从最早算起）；自主训练返回 0
+      function coachNumber(session) { if (isSelf(session)) return 0; const list = coachSessions(); return list.length - list.indexOf(session); }
       function formatDuration(minutes) {
         const hours = Math.floor(minutes / 60), rest = minutes % 60;
         if (!minutes) return '—';
@@ -657,8 +689,9 @@
       function estimatedCalories() { const minutes = Number(state.current.duration) || 0; const weight = Number(state.profile && state.profile.weight) || 0; if (!minutes || !weight) return ''; return Math.max(1, Math.round(STRENGTH_MET * weight * (minutes / 60))); }
       function completedSets() { return state.current.exercises.reduce((sum, exercise) => sum + exercise.sets.filter(set => set.done).length, 0); }
       function render() {
-        const count = state.sessions.length;
-        $('goalNumber').textContent = count + ' / 20'; $('goalMeter').style.width = Math.min(count / 20 * 100, 100) + '%'; $('goalCaption').textContent = count ? L('还差 ' + Math.max(20 - count, 0) + ' 次真实训练', Math.max(20 - count, 0) + ' more real sessions to go') : L('完成一次真实训练后，再记为 1 次', 'Each real session you finish counts as 1');
+        const count = coachSessions().length, selfCount = state.sessions.length - count;
+        $('goalNumber').textContent = count + ' / 20'; $('goalMeter').style.width = Math.min(count / 20 * 100, 100) + '%'; $('goalCaption').textContent = (count ? L('还差 ' + Math.max(20 - count, 0) + ' 次教练课', Math.max(20 - count, 0) + ' more coach sessions to go') : L('完成一次教练课后，再记为 1 次', 'Each coach session you finish counts as 1')) + (selfCount ? L(' · 另有自主训练 ' + selfCount + ' 次', ' · plus ' + selfCount + ' self-training') : '');
+        renderTypeSwitch();
         $('dateInput').value = state.current.date || ''; $('durationInput').value = state.current.duration || ''; $('weightInput').value = state.profile.weight || ''; $('caloriesInput').value = estimatedCalories(); $('notesInput').value = state.current.notes || ''; $('volumeDisplay').value = totalVolume() ? totalVolume().toLocaleString() + ' kg' : '—';
         renderExercises(); renderHistory(); renderAi(); renderReport(); renderDraftStatus(); updateVaultBadge(); renderBackupCaption(); renderWeightField(); tickDuration();
       }
@@ -694,20 +727,26 @@
         monthly.forEach(session => { const key = session.date; if (!key) return; if (!byDate[key]) byDate[key] = { sessions:[], volume:0 }; byDate[key].sessions.push(session); byDate[key].volume += Number(session.volume) || 0; });
         let html = '';
         for (let index = 0; index < leading; index += 1) html += '<span class="report-day empty" aria-hidden="true"></span>';
-        for (let day = 1; day <= days; day += 1) { const key = reportDateKey(year, month, day); const entry = byDate[key]; const hasWorkout = Boolean(entry); html += '<button type="button" class="report-day ' + (hasWorkout ? 'has-workout' : '') + '" ' + (hasWorkout ? 'data-report-date="' + key + '" aria-label="' + L(key + ' 有 ' + entry.sessions.length + ' 次训练，容量 ' + entry.volume + ' 千克', key + ': ' + entry.sessions.length + ' session(s), volume ' + entry.volume + ' kg') + '"' : 'disabled aria-label="' + L(key + ' 无训练记录', key + ': no session') + '"') + '><span class="report-day-number">' + day + '</span>' + (hasWorkout ? '<span class="report-day-volume">' + reportVolumeLabel(entry.volume) + '</span><span class="report-day-count">' + entry.sessions.length + L('次', '×') + '</span>' : '') + '</button>'; }
+        for (let day = 1; day <= days; day += 1) { const key = reportDateKey(year, month, day); const entry = byDate[key]; const hasWorkout = Boolean(entry); html += '<button type="button" class="report-day ' + (hasWorkout ? 'has-workout' + (entry.sessions.every(isSelf) ? ' self-day' : '') : '') + '" ' + (hasWorkout ? 'data-report-date="' + key + '" aria-label="' + L(key + ' 有 ' + entry.sessions.length + ' 次训练，容量 ' + entry.volume + ' 千克', key + ': ' + entry.sessions.length + ' session(s), volume ' + entry.volume + ' kg') + '"' : 'disabled aria-label="' + L(key + ' 无训练记录', key + ': no session') + '"') + '><span class="report-day-number">' + day + '</span>' + (hasWorkout ? '<span class="report-day-volume">' + reportVolumeLabel(entry.volume) + '</span><span class="report-day-count">' + entry.sessions.length + L('次', '×') + '</span>' : '') + '</button>'; }
         const trailing = (7 - ((leading + days) % 7)) % 7;
         for (let index = 0; index < trailing; index += 1) html += '<span class="report-day empty" aria-hidden="true"></span>';
         $('reportCalendar').innerHTML = html;
         $('reportCalendar').querySelectorAll('[data-report-date]').forEach(button => button.addEventListener('click', () => { const matches = state.sessions.filter(session => session.date === button.dataset.reportDate); if (matches.length) { currentShareMode = 'session'; openShareModal(matches[0], state.sessions.indexOf(matches[0])); } }));
       }
+      let statsFilter = 'all';
       function renderReportStats() {
-        const stats = computeCumulativeStats(state.sessions);
+        const filtered = statsFilter === 'coach' ? coachSessions() : statsFilter === 'self' ? state.sessions.filter(isSelf) : state.sessions;
+        const stats = computeCumulativeStats(filtered);
+        const filterBar = state.sessions.some(isSelf) ? '<div class="stats-filter">' + [['all', '全部', 'All'], ['coach', '教练课', 'Coach'], ['self', '自主', 'Self']].map(([key, zh, en]) => '<button type="button" data-stats-filter="' + key + '"' + (statsFilter === key ? ' class="active"' : '') + '>' + L(zh, en) + '</button>').join('') + '</div>' : '';
         if (!state.sessions.length) { $('reportStatsView').innerHTML = '<div class="report-empty">' + L('完成并保存真实训练后，这里会自动汇总你的出勤、容量、时长、热量和动作最佳重量。', 'Once you finish and save real sessions, your attendance, volume, time, calories and best lifts are summarized here.') + '</div>'; return; }
         const stat = (zh, en, value, green) => '<div class="report-stat"><span class="report-stat-label">' + L(zh, en) + '</span><strong class="report-stat-value' + (green ? ' green' : '') + '">' + value + '</strong></div>';
-        let html = '<div class="report-stats-grid">' + stat('训练次数', 'Sessions', stats.totalSessions + L(' 次', ''), true) + stat('累计容量', 'Total volume', stats.totalVol ? stats.totalVol.toLocaleString() + ' kg' : '—') + stat('累计时长', 'Total time', formatDuration(stats.totalDur)) + stat('热量（估算）', 'Calories (est.)', stats.totalCal ? stats.totalCal.toLocaleString() + ' kcal' : '—') + stat('场均容量', 'Avg volume', stats.avgVol ? stats.avgVol.toLocaleString() + ' kg' : '—') + stat('完成组数', 'Sets done', stats.totalCompletedSets ? stats.totalCompletedSets + L(' 组', '') : '—') + '</div>';
+        if (!filtered.length) { $('reportStatsView').innerHTML = filterBar + '<div class="report-empty">' + L('这一类还没有记录。', 'Nothing here yet.') + '</div>'; bindStatsFilter(); return; }
+        let html = filterBar + '<div class="report-stats-grid">' + stat('训练次数', 'Sessions', stats.totalSessions + L(' 次', ''), true) + stat('累计容量', 'Total volume', stats.totalVol ? stats.totalVol.toLocaleString() + ' kg' : '—') + stat('累计时长', 'Total time', formatDuration(stats.totalDur)) + stat('热量（估算）', 'Calories (est.)', stats.totalCal ? stats.totalCal.toLocaleString() + ' kcal' : '—') + stat('场均容量', 'Avg volume', stats.avgVol ? stats.avgVol.toLocaleString() + ' kg' : '—') + stat('完成组数', 'Sets done', stats.totalCompletedSets ? stats.totalCompletedSets + L(' 组', '') : '—') + '</div>';
         if (stats.prs.length) { html += '<div class="report-pr-list">' + stats.prs.map(pr => '<div class="report-pr"><strong>' + escapeHtml(pr.name) + '</strong><span>' + pr.maxWeight + ' kg × ' + (pr.repsAtMaxWeight || '—') + '</span></div>').join('') + '</div>'; }
         $('reportStatsView').innerHTML = html;
+        bindStatsFilter();
       }
+      function bindStatsFilter() { $('reportStatsView').querySelectorAll('[data-stats-filter]').forEach(button => button.addEventListener('click', () => { statsFilter = button.dataset.statsFilter; renderReportStats(); })); }
       function renderExercises() {
         if (!state.current.exercises.length) { $('exerciseList').innerHTML = '<div class="empty"><div class="empty-mark">＋</div><strong>' + L('还没有动作记录', 'No exercises yet') + '</strong><p>' + L('添加你今天实际完成的第一个动作，重量和次数都可以之后再补。', 'Add the first exercise you actually did today — weights and reps can be filled in later.') + '</p><button class="add-button" id="emptyAdd">' + L('添加第一个动作', 'Add first exercise') + '</button></div>'; $('emptyAdd').addEventListener('click', addExercise); return; }
         $('exerciseList').innerHTML = '<div class="exercise-list">' + state.current.exercises.map((exercise, exerciseIndex) => '<article class="exercise" data-exercise="' + exercise.id + '"><div class="exercise-head"><div class="exercise-index">' + String(exerciseIndex + 1).padStart(2,'0') + '</div><div class="exercise-name-wrap"><input class="exercise-name" data-field="name" value="' + escapeHtml(exercise.name) + '" placeholder="' + L('动作名称', 'Exercise name') + '" aria-label="' + L('动作名称', 'Exercise name') + '" /><span class="exercise-en">' + escapeHtml(exerciseEnglishHint(exercise)) + '</span></div><button class="remove" data-action="remove-exercise" aria-label="' + L('删除动作', 'Delete exercise') + '">×</button></div><div class="set-header"><span>' + L('组', 'Set') + '</span><span>' + L('重量（kg）', 'Weight (kg)') + '</span><span></span><span>' + L('次数', 'Reps') + '</span><span>' + L('完成', 'Done') + '</span></div>' + exercise.sets.map((set, setIndex) => '<div class="set-row" data-set="' + setIndex + '"><span class="set-number">' + (setIndex + 1) + '</span><input class="set-input" data-field="weight" inputmode="decimal" value="' + escapeHtml(set.weight) + '" placeholder="—" aria-label="' + L('第 ' + (setIndex + 1) + ' 组重量', 'Set ' + (setIndex + 1) + ' weight') + '" /><span class="times">×</span><input class="set-input" data-field="reps" inputmode="numeric" value="' + escapeHtml(set.reps) + '" placeholder="—" aria-label="' + L('第 ' + (setIndex + 1) + ' 组次数', 'Set ' + (setIndex + 1) + ' reps') + '" /><button class="done-check ' + (set.done ? 'checked' : '') + '" data-action="toggle-set" aria-label="' + L('第 ' + (setIndex + 1) + ' 组完成', 'Set ' + (setIndex + 1) + ' done') + '"><span>✓</span></button></div>').join('') + '<div class="set-actions"><button class="add-set" data-action="add-set">' + L('＋ 添加一组', '＋ Add set') + '</button><span class="volume">' + volumeLabel(exerciseVolume(exercise)) + '</span></div><div class="exercise-tips-wrap"><div class="exercise-tips-head"><span class="exercise-tips-title">' + L('动作要领 &amp; 教学口诀', 'Form cues') + '</span><span class="exercise-tips-hint">' + L('自动存入动作宝典', 'Auto-saved to playbook') + '</span></div><textarea class="exercise-tips-input" data-field="tips" placeholder="' + L('记录教练指导的器械调节、发力口诀或避坑细节...', 'Machine settings, coaching cues, mistakes to avoid...') + '" maxlength="300">' + escapeHtml(exercise.tips || '') + '</textarea></div></article>').join('') + '</div>';
@@ -760,7 +799,7 @@
       function updateCaloriesOnly() { const value = estimatedCalories(); state.current.calories = String(value); $('caloriesInput').value = value; saveState(); }
       function renderHistory() {
         $('historyCaption').textContent = state.sessions.length ? L('共 ' + state.sessions.length + ' 次', state.sessions.length + ' total') : L('还没有记录', 'No sessions yet');
-        $('historyList').innerHTML = state.sessions.length ? state.sessions.map((session, index) => '<article class="history-card"><strong>' + formatDate(session.date) + '</strong><time>' + (session.duration ? escapeHtml(session.duration) + L(' 分钟', ' min') : L('时长未填', 'No duration')) + '</time><div class="history-stats">' + session.exercises.length + L(' 个动作', (session.exercises.length) === 1 ? ' exercise' : ' exercises') + ' · ' + (session.volume ? Number(session.volume).toLocaleString() + ' kg' : L('容量未填', 'No volume')) + '</div><p>' + (session.notes ? escapeHtml(session.notes) : L('已完成训练记录', 'Session logged')) + '</p><div class="history-card-actions"><button type="button" class="history-del-btn" data-delete-index="' + index + '">' + L('删除', 'Delete') + '</button><button type="button" class="history-share-btn" data-share-index="' + index + '">' + icon('share') + ' ' + L('分享此条给教练', 'Share') + '</button></div></article>').join('') : '<div class="history-empty">' + L('完成并保存一次训练后，真实记录会显示在这里。', 'Your real sessions appear here once you finish and save one.') + '</div>';
+        $('historyList').innerHTML = state.sessions.length ? state.sessions.map((session, index) => '<article class="history-card"><strong>' + formatDate(session.date) + (isSelf(session) ? '<span class="self-tag">' + L('自主', 'Self') + '</span>' : '') + '</strong><time>' + (session.duration ? escapeHtml(session.duration) + L(' 分钟', ' min') : L('时长未填', 'No duration')) + '</time><div class="history-stats">' + session.exercises.length + L(' 个动作', (session.exercises.length) === 1 ? ' exercise' : ' exercises') + ' · ' + (session.volume ? Number(session.volume).toLocaleString() + ' kg' : L('容量未填', 'No volume')) + '</div><p>' + (session.notes ? escapeHtml(session.notes) : L('已完成训练记录', 'Session logged')) + '</p><div class="history-card-actions"><button type="button" class="history-del-btn" data-delete-index="' + index + '">' + L('删除', 'Delete') + '</button><button type="button" class="history-share-btn" data-share-index="' + index + '">' + icon('share') + ' ' + L('分享此条给教练', 'Share') + '</button></div></article>').join('') : '<div class="history-empty">' + L('完成并保存一次训练后，真实记录会显示在这里。', 'Your real sessions appear here once you finish and save one.') + '</div>';
         $('historyList').querySelectorAll('[data-share-index]').forEach(btn => {
           btn.addEventListener('click', () => {
             const idx = Number(btn.dataset.shareIndex);
@@ -773,7 +812,7 @@
             const idx = Number(btn.dataset.deleteIndex);
             const target = state.sessions[idx];
             if (!target) return;
-            if (!window.confirm(L('删除 ' + formatDate(target.date) + ' 这条训练记录？删除后无法恢复，20 次进度也会相应减少。', 'Delete the session on ' + formatDate(target.date) + '? This can’t be undone and your 20-session progress drops by one.'))) return;
+            if (!window.confirm(isSelf(target) ? L('删除 ' + formatDate(target.date) + ' 这条自主训练记录？删除后无法恢复。', 'Delete the self-training session on ' + formatDate(target.date) + '? This can’t be undone.') : L('删除 ' + formatDate(target.date) + ' 这条训练记录？删除后无法恢复，20 次进度也会相应减少。', 'Delete the session on ' + formatDate(target.date) + '? This can’t be undone and your 20-session progress drops by one.'))) return;
             state.sessions.splice(idx, 1);
             saveState();
             render();
@@ -870,6 +909,7 @@
           notes: state.current.notes,
           volume: totalVolume(),
           completedSets: completedSets(),
+          type: currentType(),
           exercises: validExercises.map(exercise => ({
             ...exercise,
             name: exercise.name,
@@ -880,6 +920,7 @@
         };
         state.sessions.unshift(savedSession);
         sortSessions(state.sessions);
+        try { localStorage.setItem(SESSION_TYPE_KEY, savedSession.type); } catch (e) {}
 
         // 同步沉淀至动作宝典 (最新覆盖)
         const vault = loadVault();
@@ -915,7 +956,7 @@
         state.aiSummary = '';
         saveState();
         render();
-        showToast(syncedCount ? L('训练已保存！已同步 ' + syncedCount + ' 条教学要领至动作宝典', 'Session saved! ' + syncedCount + ' cue(s) synced to your playbook') : L('本次训练已保存！点击顶部【分享给教练】', 'Session saved! Tap “Share with coach” at the top'));
+        showToast(isSelf(savedSession) && !syncedCount ? L('自主训练已保存（不计入 20 次）', 'Self training saved (not counted toward the 20)') : syncedCount ? L('训练已保存！已同步 ' + syncedCount + ' 条教学要领至动作宝典', 'Session saved! ' + syncedCount + ' cue(s) synced to your playbook') : L('本次训练已保存！点击顶部【分享给教练】', 'Session saved! Tap “Share with coach” at the top'));
       }
       function summarySource() { if (state.current.exercises.length) return { ...state.current, volume:totalVolume(), completedSets:completedSets() }; return state.sessions[0] || null; }
       async function generateSummary() { syncMeta(); syncAiConfig(); const source = summarySource(); if (!source || !source.exercises?.length) { showToast(L('先添加真实训练内容', 'Add real workout data first')); return; } const config = activeAiConfig(); const key = $('aiKey').value.trim(); if (!config.endpoint) { showToast(L('请先填写接口地址', 'Enter the endpoint first')); return; } if (aiConfig.mode === 'remote' && !key) { showToast(L('请先配置 API Key', 'Set your API key first')); document.querySelector('.ai-settings').open = true; $('aiKey').focus(); return; } const button = $('generateSummary'); button.disabled = true; button.innerHTML = L('生成中…', 'Generating…'); $('aiOutput').hidden = false; $('aiContent').textContent = L('正在根据你的真实记录整理…', 'Summarizing your actual log…'); const prompt = I18N.mode === 'en' ? 'Based on the following real strength-training log, write a concise, objective summary in English. Do not invent exercises, weights, reps or feelings that were not provided; write "not recorded" for missing data. Use four sections: 1. Overview; 2. Completion; 3. Worth keeping; 4. Focus for next time. No medical diagnosis, and do not prescribe a full training plan.\n\nWorkout log: ' + JSON.stringify(source) : '请根据以下真实力量训练记录，生成一份简洁、客观、中文的训练总结。不要编造未提供的动作、重量、次数或身体感受；缺少的数据就明确写“未记录”。用四段输出：1. 本次训练概览；2. 完成情况；3. 值得保持；4. 下一次可关注。不要做医疗诊断，不要擅自安排完整训练计划。' + '\n\n训练记录：' + JSON.stringify(source); try { const response = await fetch(config.endpoint, { method:'POST', headers:{'Content-Type':'application/json', ...(aiConfig.mode === 'remote' && key ? {Authorization:'Bearer ' + key} : {})}, body:JSON.stringify({model:config.model || (aiConfig.mode === 'local' ? 'deepseek-r1:7b' : 'deepseek-v4-flash'), messages:[{role:'system',content:I18N.mode === 'en' ? 'You are a careful workout-log assistant. Summarize only the data the user provides.' : '你是一个谨慎的训练日志分析助手，只总结用户提供的数据。'},{role:'user',content:prompt}], temperature:0.3}) }); const data = await response.json(); if (!response.ok) throw new Error(data.error?.message || L('模型服务返回错误', 'Model service returned an error')); const rawContent = data.choices?.[0]?.message?.content || data.choices?.[0]?.text; // deepseek-r1 等推理模型会把思考过程包在 <think> 里一起返回，只保留结论
@@ -1055,10 +1096,11 @@
       }
 
       function buildSessionShareData(session, sessionIndex) {
-        const totalCount = state.sessions.length;
+        const totalCount = coachSessions().length;
         let index = totalCount;
-        if (sessionIndex !== undefined) {
-          index = totalCount - sessionIndex;
+        const self = session === state.current ? currentType() === 'self' : isSelf(session);
+        if (session !== state.current && state.sessions.includes(session)) {
+          index = coachNumber(session);
         } else if (session === state.current && state.current.exercises.length) {
           index = totalCount + 1;
         }
@@ -1066,6 +1108,7 @@
         const cumVol = state.sessions.reduce((sum, s) => sum + (Number(s.volume) || 0), 0) + (session === state.current ? vol : 0);
         return {
           t: 'session',
+          ...(self ? { self: 1 } : {}),
           index: Math.max(index, 1),
           goal: 20,
           total: totalCount,
@@ -1093,7 +1136,8 @@
         return {
           t: 'progress',
           goal: 20,
-          total: state.sessions.length,
+          total: coachSessions().length,
+          selfTotal: state.sessions.filter(isSelf).length,
           stats: {
             totVol: stats.totalVol,
             totDur: stats.totalDur,
@@ -1117,6 +1161,7 @@
             notes: full ? String(s.notes || '') : String(s.notes || '').slice(0, 120),
             exCount: (s.exercises || []).length,
             topEx: (s.exercises || []).map(e => e.name || '').filter(Boolean),
+            ...(isSelf(s) ? { k: 1 } : {}),
             ...(full ? { ex: (s.exercises || []).map(e => ({ n: e.name || '', s: (e.sets || []).map(set => ({ w: set.weight || '', r: set.reps || '', d: Boolean(set.done) })) })) } : {})
           }))
         };
@@ -1181,7 +1226,8 @@
         const none = L('未记录', 'not recorded');
         let t = '🏋️【' + W('健身打卡 · 训练日报', 'Workout Check-in · Daily Report') + '】\n';
         t += '━━━━━━━━━━━━━━━\n';
-        t += '🎯 ' + W('打卡进度', 'Progress') + '：' + L('第 ', '#') + num(payload.index) + ' / ' + (num(payload.goal) || 20) + L(' 次', '') + (num(payload.cumVol) ? L('（累计容量 ', ' (total volume ') + num(payload.cumVol).toLocaleString() + L('kg）', ' kg)') : '') + '\n';
+        if (payload.self) t += '🏃 ' + W('自主训练', 'Self training') + L('（不计入 20 次打卡）', ' (not counted toward the 20)') + '\n';
+        else t += '🎯 ' + W('打卡进度', 'Progress') + '：' + L('第 ', '#') + num(payload.index) + ' / ' + (num(payload.goal) || 20) + L(' 次', '') + (num(payload.cumVol) ? L('（累计容量 ', ' (total volume ') + num(payload.cumVol).toLocaleString() + L('kg）', ' kg)') : '') + '\n';
         t += '📅 ' + W('训练日期', 'Date') + '：' + formatDate(payload.date) + '\n';
         t += '⏱️ ' + W('训练时长', 'Duration') + '：' + (payload.dur ? payload.dur + L(' 分钟', ' min') : none) + '\n';
         t += '🔥 ' + W('热量消耗', 'Calories') + '：' + (payload.cal ? payload.cal + ' kcal' : none) + '\n';
@@ -1368,7 +1414,7 @@
           html += '<section class="viewer-card">' + head('h3', '累计负荷看板', 'Totals', '<span style="font-size:12px; color:var(--muted);">' + L('阶段汇总', 'To date') + '</span>') + '<div class="viewer-kpi-grid">';
           html += kpi('累计总容量', 'Total volume', totVol ? totVol.toLocaleString() + ' kg' : '—', totVol >= 10000 ? '≈ ' + (totVol / 1000).toFixed(1) + L(' 吨', ' t') : (avgVol ? L('场均 ', 'avg ') + avgVol.toLocaleString() + 'kg' : ''), true);
           html += kpi('累计总时长', 'Total time', formatDuration(totDur), avgDur ? L('场均 ' + avgDur + ' 分钟', 'avg ' + avgDur + ' min') : '');
-          html += kpi('打卡出勤', 'Sessions', count + L(' 次', ''), L('目标 ', 'goal ') + goal + ' (' + percent + '%)');
+          html += kpi('打卡出勤', 'Sessions', count + L(' 次', ''), L('目标 ', 'goal ') + goal + ' (' + percent + '%)' + (num(payload.selfTotal) ? L(' · 另有自主 ' + num(payload.selfTotal) + ' 次', ' · +' + num(payload.selfTotal) + ' self') : ''));
           html += kpi('累计消耗', 'Calories', num(stats.totCal) ? num(stats.totCal).toLocaleString() + ' kcal' : '—', num(stats.sets) ? L('完成 ' + num(stats.sets) + ' 组', num(stats.sets) + ' sets done') : '');
           html += '</div></section>';
 
@@ -1385,11 +1431,13 @@
             html += '<div class="history-empty">' + L('暂无训练记录', 'No sessions yet') + '</div>';
           } else {
             html += '<div class="history-list">';
+            let coachSeen = 0;
             sessionList.forEach((s, idx) => {
-              const sessionNo = count >= sessionList.length ? (count - idx) : (sessionList.length - idx);
+              // 只给教练课编号；自主训练显示「自主训练」
+              const sessionNo = s.k ? 0 : count - coachSeen++;
               const exList = Array.isArray(s.ex) ? s.ex : [];
               const topEx = Array.isArray(s.topEx) ? s.topEx : [];
-              html += '<article class="viewer-history-item"><div class="viewer-history-head" data-toggle-index="' + idx + '"><div><div style="font-weight:800; font-size:15px; color:#f0f0f3;">' + formatDate(s.d) + ' <span style="font-size:12px; font-weight:600; color:var(--green); margin-left:6px;">' + L('第 ' + sessionNo + ' 次', '#' + sessionNo) + '</span></div><div style="color:var(--muted); font-size:13px; margin-top:3px;">' + (s.dur ? escapeHtml(s.dur) + L(' 分钟', ' min') + ' · ' : '') + (exList.length || num(s.exCount)) + L(' 个动作', ((exList.length || num(s.exCount))) === 1 ? ' exercise' : ' exercises') + '</div></div><div style="text-align:right;"><div style="color:var(--green); font-size:14px; font-weight:850;">' + (num(s.vol) ? num(s.vol).toLocaleString() + ' kg' : L('容量未填', 'no volume')) + '</div><button type="button" class="viewer-history-toggle" data-toggle-index="' + idx + '"><span class="toggle-label">' + L('展开', 'More') + '</span> <span class="arrow">▼</span></button></div></div>';
+              html += '<article class="viewer-history-item"><div class="viewer-history-head" data-toggle-index="' + idx + '"><div><div style="font-weight:800; font-size:15px; color:#f0f0f3;">' + formatDate(s.d) + ' <span style="font-size:12px; font-weight:600; color:var(--green); margin-left:6px;">' + (sessionNo ? L('第 ' + sessionNo + ' 次', '#' + sessionNo) : L('自主训练', 'Self')) + '</span></div><div style="color:var(--muted); font-size:13px; margin-top:3px;">' + (s.dur ? escapeHtml(s.dur) + L(' 分钟', ' min') + ' · ' : '') + (exList.length || num(s.exCount)) + L(' 个动作', ((exList.length || num(s.exCount))) === 1 ? ' exercise' : ' exercises') + '</div></div><div style="text-align:right;"><div style="color:var(--green); font-size:14px; font-weight:850;">' + (num(s.vol) ? num(s.vol).toLocaleString() + ' kg' : L('容量未填', 'no volume')) + '</div><button type="button" class="viewer-history-toggle" data-toggle-index="' + idx + '"><span class="toggle-label">' + L('展开', 'More') + '</span> <span class="arrow">▼</span></button></div></div>';
               html += '<div class="viewer-history-details" id="viewerDetails_' + idx + '">';
               if (s.notes) html += '<div style="margin-bottom:12px; padding:10px 12px; border-radius:10px; background:#141416; font-size:13px; color:#c7c7cc; border:1px solid #2a2a2e;"><strong style="color:var(--green);">' + L('学员心得', 'Notes') + '：</strong>' + escapeHtml(s.notes) + '</div>';
               if (exList.length) {
@@ -1435,7 +1483,7 @@
           'Got your check-in! ' + (vol ? 'Total volume today: ' + vol.toLocaleString() + ' kg, ' : '') + completedSetsCount + ' sets completed. Keep it up! 💪');
         const meta = (zh, en, value, green) => '<div class="viewer-meta-item"><div class="viewer-meta-label">' + L(zh, en) + '</div><div class="viewer-meta-val' + (green ? ' green' : '') + '">' + value + '</div></div>';
 
-        let html = '<section class="viewer-card">' + head('h2', '学员训练打卡报告', 'Workout report', '<span style="color:var(--green); font-weight:800; font-size:14px;">' + L('第 ' + index + ' / ' + goal + ' 次', '#' + index + ' / ' + goal) + '</span>');
+        let html = '<section class="viewer-card">' + head('h2', '学员训练打卡报告', 'Workout report', '<span style="color:var(--green); font-weight:800; font-size:14px;">' + (payload.self ? L('自主训练', 'Self training') : L('第 ' + index + ' / ' + goal + ' 次', '#' + index + ' / ' + goal)) + '</span>');
         if (cumVol) html += '<div style="margin-top:10px; padding:8px 12px; border-radius:10px; background:#18261b; border:1px solid #2d4c35; font-size:12px; color:#c7e0cb; display:flex; justify-content:space-between; align-items:center; gap:10px;"><span>' + L('阶段累计总容量', 'Total volume to date') + '</span><strong style="color:var(--green); font-size:14px; white-space:nowrap;">' + cumVol.toLocaleString() + ' kg</strong></div>';
         html += '<div class="viewer-meta-grid">' + meta('训练日期', 'Date', formatDate(payload.date)) + meta('训练时长', 'Duration', payload.dur ? escapeHtml(payload.dur) + L(' 分', ' min') : '—') + meta('热量消耗', 'Calories', payload.cal ? escapeHtml(payload.cal) + ' kcal' : '—') + meta('本次总容量', 'Volume', vol ? vol.toLocaleString() + ' kg' : '—', true) + '</div></section>';
         html += '<section class="viewer-card">' + head('h3', '动作明细 (' + exercises.length + ' 个动作 · 完成 ' + completedSetsCount + '/' + totalSetsCount + ' 组)', 'Exercises (' + exercises.length + ' · ' + completedSetsCount + '/' + totalSetsCount + ' sets done)') + '<div>';
@@ -1597,15 +1645,20 @@
       // 请求浏览器把本站存储标记为"持久"，降低被系统自动清理的概率（不支持或被拒绝都不影响使用）
       navigator.storage?.persist?.().catch(() => {});
 
+      document.querySelectorAll('[data-session-type]').forEach(button => button.addEventListener('click', () => {
+        state.current.type = button.dataset.sessionType;
+        try { localStorage.setItem(SESSION_TYPE_KEY, state.current.type); } catch (e) {}
+        saveState(); renderTypeSwitch();
+      }));
       $('addExercise').addEventListener('click', addExercise); $('clearDraft').addEventListener('click', clearDraft); $('finishWorkout').addEventListener('click', finishWorkout); $('generateSummary').addEventListener('click', generateSummary); $('testLocal').addEventListener('click', testLocal); document.querySelectorAll('[data-mode]').forEach(button => button.addEventListener('click', () => setAiMode(button.dataset.mode))); document.querySelectorAll('[data-report-view]').forEach(button => button.addEventListener('click', () => { reportView = button.dataset.reportView; renderReport(); })); $('reportPrevMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() - 1, 1); renderReportHistory(); }); $('reportNextMonth').addEventListener('click', () => { reportMonth = new Date(reportMonth.getFullYear(), reportMonth.getMonth() + 1, 1); renderReportHistory(); }); $('reportTodayMonth').addEventListener('click', () => { reportMonth = new Date(); renderReportHistory(); }); $('aiEndpoint').addEventListener('input', syncAiConfig); $('aiModel').addEventListener('input', syncAiConfig); ['dateInput','durationInput','caloriesInput','notesInput'].forEach(id => $(id).addEventListener('input', syncMeta)); $('durationInput').addEventListener('input', () => { state.current.durationManual = Boolean($('durationInput').value.trim()); updateCaloriesOnly(); if (state.current.durationManual) renderDurationHint(); else tickDuration(); }); $('durationInput').addEventListener('blur', () => { if (!state.current.durationManual) $('durationInput').value = state.current.duration || ''; }); setInterval(tickDuration, 30000); document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tickDuration(); }); $('weightInput').addEventListener('input', () => { state.profile.weight = $('weightInput').value; updateCaloriesOnly(); }); $('weightInput').addEventListener('blur', () => { editingWeight = false; renderWeightField(); }); $('editWeightBtn').addEventListener('click', () => { editingWeight = true; renderWeightField(); $('weightInput').focus(); });
       if (typeof document.modelContext?.registerTool === 'function') { document.modelContext.registerTool({ name:'read_workout_log', title:'读取训练日志', description:'读取当前训练草稿和已保存的真实训练记录。', inputSchema:{type:'object',properties:{},additionalProperties:false}, annotations:{readOnlyHint:true,untrustedContentHint:true}, execute(){ return { completedCount:state.sessions.length, current:state.current, sessions:state.sessions.slice(0,10) }; } }); document.modelContext.registerTool({ name:'save_workout_session', title:'保存训练记录', description:'保存一条由用户提供的真实训练记录。不会创建预设动作或虚构数据。', inputSchema:{type:'object',properties:{date:{type:'string'},duration:{type:'string'},calories:{type:'string'},notes:{type:'string'},exercises:{type:'array'}},required:['exercises'],additionalProperties:false}, annotations:{readOnlyHint:false,untrustedContentHint:false}, execute(input){ if(!Array.isArray(input.exercises)||!input.exercises.length) throw new Error('至少需要一个真实动作'); const session={date:String(input.date||''),duration:String(input.duration||''),calories:String(input.calories||''),notes:String(input.notes||''),volume:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).reduce((a,set)=>a+(Number(set.weight)||0)*(Number(set.reps)||0),0),0),completedSets:input.exercises.reduce((sum,ex)=>sum+(ex.sets||[]).filter(set=>set.done).length,0),exercises:input.exercises}; state.sessions.unshift(session); sortSessions(state.sessions); saveState(); render(); return {status:'saved',completedCount:state.sessions.length}; } }); }
       seedVaultPresets();
       renderAiConfig(); render(); checkAndRenderViewer();
     </script>
     <script src="female-body-data.js?v=20260915_dark"></script>
-    <script src="workout-extras.js?v=20261027_history"></script>
-    <script src="workout-videos.js?v=20261027_history"></script>
-    <script src="workout-history.js?v=20261027_history"></script>
+    <script src="workout-extras.js?v=20261027_self"></script>
+    <script src="workout-videos.js?v=20261027_self"></script>
+    <script src="workout-history.js?v=20261027_self"></script>
     <script>
       if ('serviceWorker' in navigator) {
         // 首次访问时 controller 是空的（这一次装完不用刷新）；之后换成新版才自动刷新一次，
